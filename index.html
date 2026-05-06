@@ -314,6 +314,27 @@
     font-family: var(--font-mono); font-size: var(--text-xs); color: var(--fg-2);
   }
   @media (max-width: 880px) { footer { grid-template-columns: 1fr 1fr; } }
+
+  /* === Team === */
+  .team-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-5); }
+  .team-card {
+    background: var(--bg-1); border: 1px solid var(--line-1);
+    border-radius: var(--r-4); padding: var(--s-6);
+    display: flex; flex-direction: column; gap: var(--s-4);
+  }
+  .team-avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--flux-gradient);
+    display: flex; align-items: center; justify-content: center;
+    font: 600 var(--text-md)/1 var(--font-sans);
+    color: #fff; flex-shrink: 0;
+  }
+  .team-name { margin: 0; font: 600 var(--text-md)/1.2 var(--font-sans); letter-spacing: var(--tracking-tight); }
+  .team-role { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--flux-cyan); letter-spacing: var(--tracking-caps); text-transform: uppercase; margin-top: var(--s-1); }
+  .team-bio { margin: 0; font-size: var(--text-sm); color: var(--fg-1); line-height: 1.6; }
+  .team-contact { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--fg-2); margin-top: auto; }
+  .team-contact a { color: var(--flux-cyan); }
+  @media (max-width: 880px) { .team-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -629,6 +650,39 @@
           <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Solutions architect</span></li>
         </ul>
         <a class="btn btn-ghost">Contact sales</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 Team -->
+<section class="s" id="team">
+  <div class="container">
+    <div class="s-head">
+      <div>
+        <div class="num">04 · Team</div>
+        <h2>Built by researchers who've worked on the problem.</h2>
+      </div>
+      <p>FluxCompute is built by two Cornell Tech researchers with hands-on experience in ML hardware, production LLM systems, and inference optimization.</p>
+    </div>
+    <div class="team-grid">
+      <div class="team-card">
+        <div class="team-avatar">I</div>
+        <div>
+          <h3 class="team-name">Ishan Patwardhan</h3>
+          <div class="team-role">Co-founder</div>
+        </div>
+        <p class="team-bio">Researcher at Cornell Tech in Agentic Systems, ML hardware, and hardware-software co-design. Inference research at MIT CSAIL: hierarchical MoE, DAG-based token routing. SWE at Google: SVD-based context engineering and evaluation frameworks for Gemini. Prior: HPC systems, math libraries, and container platforms at Hewlett Packard Enterprise.</p>
+        <div class="team-contact"><a href="mailto:ip259@cornell.edu">ip259@cornell.edu</a></div>
+      </div>
+      <div class="team-card">
+        <div class="team-avatar">N</div>
+        <div>
+          <h3 class="team-name">Niki Karanikola</h3>
+          <div class="team-role">Co-founder</div>
+        </div>
+        <p class="team-bio">Two years shipping production LLM inference, dense retrieval, and RAG pipelines at Veolia — re-architected enterprise knowledge access from weeks to minutes, 6× faster reporting cadence, +20% NDCG. Researcher at Cornell Tech's Social Technologies Lab.</p>
+        <div class="team-contact"><a href="mailto:nk699@cornell.edu">nk699@cornell.edu</a></div>
       </div>
     </div>
   </div>
