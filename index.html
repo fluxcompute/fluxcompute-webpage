@@ -60,6 +60,10 @@
     margin: 0 0 var(--s-5);
     font: 600 var(--text-4xl)/var(--leading-tight) var(--font-sans);
     letter-spacing: var(--tracking-display);
+    white-space: nowrap;
+  }
+  @media (max-width: 880px) {
+    .hero h1 { white-space: normal; font-size: var(--text-3xl); }
   }
   .hero h1 .em { display: inline-block; }
   .hero p.lede {
@@ -361,12 +365,9 @@
   <div class="center">
     <a href="#">How it works</a>
     <a href="#team">Team</a>
-    <a href="#">Pricing</a>
-    <a href="#">Docs</a>
   </div>
   <div class="right">
-    <a href="mailto:ip259@cornell.edu" style="font-size: var(--text-sm); color: var(--fg-1);">ip259@cornell.edu</a>
-    <a href="mailto:ip259@cornell.edu" class="btn btn-flux btn-sm">Book a demo →</a>
+    <a href="mailto:ip259@cornell.edu,nk699@cornell.edu" class="btn btn-flux btn-sm">Book a demo →</a>
   </div>
 </nav>
 
@@ -378,7 +379,8 @@
       <span class="t-mono" style="color: var(--fg-2);">Research · NE Agents Day 2026 · Cornell Tech</span>
     </div>
     <h1>
-      We optimize inference costs for large scale <span class="em flux-gradient-text">agentic workflows</span>, by state preservation, routing, and memory persistence — while being hardware and model agnostic.
+      The optimization layer for<br/>
+      <span class="em flux-gradient-text">agentic workflows.</span>
     </h1>
     <p class="lede">
       FluxCompute sits between your agent and your models. Every query gets analyzed in
@@ -386,7 +388,7 @@
       Same accuracy, fraction of the cost, no infra change.
     </p>
     <div class="cta">
-      <a href="mailto:ip259@cornell.edu" class="btn btn-flux btn-lg">Book a demo →</a>
+      <a href="mailto:ip259@cornell.edu,nk699@cornell.edu" class="btn btn-flux btn-lg">Book a demo →</a>
       <a href="#team" class="btn btn-ghost btn-lg">Meet the team →</a>
     </div>
 
@@ -432,9 +434,8 @@
     <div class="s-head">
       <div>
         <div class="num">01 · How it works</div>
-        <h2>Five layers. Zero infra changes.</h2>
+        <h2>We optimize inference costs for large scale agentic workflows.</h2>
       </div>
-      <p>You keep your agent and your models. FluxCompute compiles every query down to the model that should actually run it — and caches, monitors, and corrects itself along the way.</p>
     </div>
 
     <div class="features">
@@ -555,7 +556,7 @@
     <div class="s-head">
       <div>
         <div class="num">02 · Performance</div>
-        <h2>Numbers, not adjectives.</h2>
+        <h2>Measured on production workloads.</h2>
       </div>
       <p>Measured on real production agent workloads, A6000 Ada hardware, against HumanEval and TriviaQA. Cost normalized to baseline of routing every query to the top-tier model. Lower is better.</p>
     </div>
@@ -615,62 +616,6 @@
   </div>
 </section>
 
-<!-- 03 Pricing -->
-<section class="s">
-  <div class="container">
-    <div class="s-head">
-      <div>
-        <div class="num">03 · Pricing</div>
-        <h2>We win when you win.</h2>
-      </div>
-      <p>Outcome-aligned. We bill 20% of the inference spend we eliminate, measured against your own pre-FluxCompute baseline. No savings, no bill.</p>
-    </div>
-
-    <div class="pricing">
-      <div class="price">
-        <div class="tier">Pilot</div>
-        <h3>Pilot</h3>
-        <div class="amt"><span class="num">Free</span><span class="unit">/ 14 days</span></div>
-        <ul>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Drop-in routing for one workload</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Baseline + savings report</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>OpenAI · Anthropic · Google</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>No card. No commit.</span></li>
-        </ul>
-        <a href="mailto:ip259@cornell.edu" class="btn btn-ghost">Book a demo</a>
-      </div>
-
-      <div class="price featured">
-        <div class="tier">Most teams</div>
-        <h3>Growth</h3>
-        <div class="amt"><span class="num">20%</span><span class="unit">of savings</span></div>
-        <ul>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>All five layers, all workloads</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Multi-turn KV cache persistence</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Drift monitor + monthly recompile</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>OTLP + Prometheus export</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Slack support · 4h response</span></li>
-        </ul>
-        <a href="mailto:ip259@cornell.edu" class="btn btn-flux">Book a demo →</a>
-      </div>
-
-      <div class="price">
-        <div class="tier">Regulated</div>
-        <h3>Enterprise</h3>
-        <div class="amt"><span class="num">Talk to us</span></div>
-        <ul>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>On-prem deployment, no API egress</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Model compression (40–70%)</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>HIPAA · GDPR · FedRAMP-ready</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>SAML SSO + SCIM</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Solutions architect</span></li>
-        </ul>
-        <a href="mailto:ip259@cornell.edu" class="btn btn-ghost">Get in touch →</a>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- 04 Team -->
 <section class="s" id="team">
   <div class="container">
@@ -708,10 +653,9 @@
 <div class="container">
   <div class="cta-final">
     <h2>See your inference bill drop in two weeks.</h2>
-    <p>Free 14-day pilot on your own traffic. We bill nothing until we prove the savings.</p>
     <div class="row">
-      <a href="mailto:ip259@cornell.edu" class="btn btn-flux btn-lg">Book a demo →</a>
-      <a href="mailto:ip259@cornell.edu" class="btn btn-ghost btn-lg">Get in touch →</a>
+      <a href="mailto:ip259@cornell.edu,nk699@cornell.edu" class="btn btn-flux btn-lg">Book a demo →</a>
+      <a href="mailto:ip259@cornell.edu,nk699@cornell.edu" class="btn btn-ghost btn-lg">Get in touch →</a>
     </div>
   </div>
 </div>
@@ -735,27 +679,12 @@
     <h4>Product</h4>
     <ul>
       <li><a href="#">How it works</a></li>
-      <li><a href="#">Pricing</a></li>
-      <li><a href="#">On-prem</a></li>
-      <li><a href="#">Status</a></li>
-    </ul>
-  </div>
-  <div>
-    <h4>Developers</h4>
-    <ul>
-      <li><a href="#">Documentation</a></li>
-      <li><a href="#">API reference</a></li>
-      <li><a href="#">CLI</a></li>
-      <li><a href="#">Examples</a></li>
     </ul>
   </div>
   <div>
     <h4>Company</h4>
     <ul>
       <li><a href="#team">Team</a></li>
-      <li><a href="#">Customers</a></li>
-      <li><a href="#">Careers</a></li>
-      <li><a href="mailto:ip259@cornell.edu">Contact</a></li>
     </ul>
   </div>
   <div class="copy">
