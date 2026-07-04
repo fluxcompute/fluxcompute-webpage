@@ -214,6 +214,20 @@
     .dash-left { border-right: 0; border-bottom: 1px solid var(--line-1); }
     .dash-right { overflow-x: auto; }
   }
+
+  /* === Code === */
+  .codesec { border-top: 1px solid var(--line-1); }
+  .term {
+    margin-top: var(--s-6); background: var(--bg-1); border: 1px solid var(--line-2);
+    border-radius: var(--r-4); overflow: hidden; box-shadow: var(--shadow-1); max-width: 720px;
+  }
+  .term .bar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: var(--bg-2); border-bottom: 1px solid var(--line-1); }
+  .term .bar i { width: 9px; height: 9px; border-radius: 50%; background: #272b34; }
+  .term .bar span { margin-left: 10px; font: 10px var(--font-mono); color: var(--fg-2); }
+  .term pre { margin: 0; padding: var(--s-5); font: 12.5px/1.8 var(--font-mono); color: var(--fg-1); overflow-x: auto; }
+  .term .kw { color: var(--accent); } .term .str { color: var(--ok-text); } .term .cm { color: var(--fg-2); }
+  .code-kicker { margin-top: var(--s-4); color: var(--fg-1); font-size: var(--text-sm); max-width: 560px; line-height: var(--leading-body); }
+  .code-kicker b { color: var(--ok-text); }
 </style>
 </head>
 <body>
@@ -481,6 +495,26 @@
       </div>
     </div>
     <p class="dash-caption reveal">Demo workload — reproduce it yourself: <code>pip install fluxcompute</code></p>
+  </div>
+</section>
+
+<section class="codesec" id="code">
+  <div class="container">
+    <div class="eyebrow reveal">The API</div>
+    <h2 class="sec reveal">Resume is one call.</h2>
+    <div class="term reveal">
+      <div class="bar"><i></i><i></i><i></i><span>agent.py</span></div>
+      <pre><span class="kw">with</span> client.task(<span class="str">"market-research"</span>) <span class="kw">as</span> t:
+    result = <span class="kw">await</span> client.messages.create(...)
+    <span class="kw">with</span> client.step(<span class="str">"fetch-pricing-data"</span>) <span class="kw">as</span> s:
+        s.set_output(pricing_data)
+    <span class="cm"># a step fails deep into the task…</span>
+
+<span class="cm"># instead of restarting from scratch:</span>
+response = <span class="kw">await</span> client.resume(t.task_id)
+<span class="cm"># → minimal context from succeeded steps, failed step re-routed</span></pre>
+    </div>
+    <p class="code-kicker reveal">LangGraph can't do cost-aware resume. Temporal can't do model-aware resume. <b>Flux is both</b> — because the graph and the router are the same system.</p>
   </div>
 </section>
 
