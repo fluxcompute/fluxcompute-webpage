@@ -155,6 +155,25 @@
     svg.graph { height: 380px; }
     .hero .copy { padding-top: var(--s-4); }
   }
+
+  /* === Problem === */
+  .problem { border-top: 1px solid var(--line-1); background: var(--bg-0); }
+  .fail-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); margin-top: var(--s-6); }
+  .fail-card {
+    background: var(--bg-1); border: 1px solid var(--line-1); border-radius: var(--r-3);
+    padding: var(--s-5); min-width: 0;
+  }
+  .fail-card .fh { display: flex; align-items: center; gap: var(--s-2); font: 500 11px var(--font-mono); color: var(--fail); }
+  .fail-card .fh::before { content: "✗"; }
+  .fail-card p { margin: var(--s-3) 0 0; color: var(--fg-1); font-size: var(--text-sm); line-height: var(--leading-body); }
+  .replay-line {
+    margin-top: var(--s-6); padding: var(--s-4) var(--s-5);
+    border: 1px dashed rgba(255,77,94,.35); border-radius: var(--r-3);
+    font: 500 var(--text-sm)/1.7 var(--font-mono); color: var(--fg-1); overflow-x: auto;
+  }
+  .replay-line b { color: var(--fail); font-weight: 600; }
+  .replay-line .fix { color: var(--accent); }
+  @media (max-width: 880px) { .fail-cards { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -302,6 +321,29 @@
         <div class="tlog" id="tlog"></div>
       </div>
     </div>
+  </div>
+</section>
+
+<section class="problem" id="problem">
+  <div class="container">
+    <div class="eyebrow reveal">The problem</div>
+    <h2 class="sec reveal">Long-running agents die in the dark.</h2>
+    <p class="sec-lede reveal">A 40-step research task fails at step 37. Today you replay all 40 — every token, every tool call, every minute — and hope it doesn't happen again. It happens again.</p>
+    <div class="fail-cards">
+      <div class="fail-card reveal">
+        <div class="fh">context_overflow</div>
+        <p>The window fills mid-task and the model silently drops the thing it needed most. The failure surfaces three steps later, somewhere else.</p>
+      </div>
+      <div class="fail-card reveal">
+        <div class="fh">tool_error</div>
+        <p>A flaky API returns one 500 and the whole run is dead — even though 36 steps of perfectly good work already succeeded.</p>
+      </div>
+      <div class="fail-card reveal">
+        <div class="fh">model_stall</div>
+        <p>The model loops, refuses, or times out at 2 a.m. Nobody notices until morning. The logs won't tell you which step, or why.</p>
+      </div>
+    </div>
+    <div class="replay-line reveal">without flux: <b>fail @ step 37 → replay 40 steps → 2× cost, 0 answers</b><br/>with flux:&nbsp;&nbsp;&nbsp; <span class="fix">fail @ step 37 → resume @ step 37 → done</span></div>
   </div>
 </section>
 
