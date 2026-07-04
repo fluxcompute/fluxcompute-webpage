@@ -1,0 +1,1045 @@
+# fluxcompute.dev Terminal-Green Overhaul Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Full rewrite of the fluxcompute.dev single-page site: reliability-first positioning, terminal-green-on-black visual system, animated execution-graph hero with live telemetry, and honest CTAs (PyPI + email).
+
+**Architecture:** One static `index.html` (embedded `<style>` + vanilla JS at the bottom) plus a rewritten `tokens.css` and recolored `logo.svg`. No build step, no frameworks. Animated SVG constellation driven by CSS keyframes + `animateMotion`; failure/recovery cycle and telemetry log driven by a small JS timeline; scroll reveals via IntersectionObserver; everything gated on `prefers-reduced-motion`.
+
+**Tech Stack:** HTML5, CSS custom properties, inline SVG, vanilla JS. Google Fonts (Inter Tight + JetBrains Mono). Verified with `python3 -m http.server` + headless Chrome screenshots.
+
+**Spec:** `docs/superpowers/specs/2026-07-04-website-overhaul-design.md`
+**Validated prototype (port from here, don't reinvent):** `.superpowers/brainstorm/64086-1783149106/content/animated-hero-v2.html` — contains the approved constellation SVG, halo/breathe/drift keyframes, failure-cycle JS, and telemetry log. Palette = its `[data-palette="green"]` values promoted to default.
+
+**Verification commands used throughout** (from repo root `/Users/ishan/fluxcompute`):
+
+```bash
+# serve once, leave running in background
+python3 -m http.server 8010 &
+
+CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+SHOT=/private/tmp/claude-501/-Users-ishan/658cf65a-2cb1-4f1c-b57d-fe5636fe12d3/scratchpad
+
+# desktop + phone screenshots (re-run after every task; Read the PNGs to inspect)
+"$CHROME" --headless=new --disable-gpu --screenshot="$SHOT/desktop.png" --window-size=1440,4200 http://localhost:8010 2>/dev/null
+"$CHROME" --headless=new --disable-gpu --screenshot="$SHOT/mobile.png"  --window-size=390,6000  http://localhost:8010 2>/dev/null
+```
+
+**Commit style:** plain messages, no attribution/trailers of any kind (repo rule).
+
+---
+
+### Task 1: Branch + design tokens + logo
+
+**Files:**
+- Modify: `tokens.css` (full rewrite)
+- Modify: `logo.svg` (recolor)
+
+- [ ] **Step 1: Create the working branch**
+
+```bash
+git checkout -b redesign/terminal-green
+```
+
+- [ ] **Step 2: Rewrite `tokens.css` in full**
+
+Replace the entire file with:
+
+```css
+/* FluxCompute design tokens — terminal green system (2026-07) */
+:root {
+  /* surfaces */
+  --bg-0: #08090c;
+  --bg-1: #0b0d12;
+  --bg-2: #101218;
+  --bg-3: #14161c;
+
+  /* text */
+  --fg-0: #f2f4f8;
+  --fg-1: #9aa3b2;
+  --fg-2: #5c6472;
+
+  /* lines */
+  --line-1: rgba(255,255,255,.07);
+  --line-2: rgba(255,255,255,.13);
+
+  /* accent — terminal green. no violet, ever. */
+  --accent: #2fe6a8;
+  --accent-hi: #aef7dc;
+  --accent-dim: rgba(47,230,168,.13);
+  --accent-grad: linear-gradient(120deg, #2fe6a8, #aef7dc);
+  --ok-text: #d6f9ec;
+
+  /* failure red — the only other hue */
+  --fail: #ff4d5e;
+  --fail-dim: rgba(255,77,94,.12);
+
+  /* type */
+  --font-sans: "Inter Tight", Inter, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-md: 15px;
+  --text-lg: 18px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+  --text-3xl: 44px;
+  --text-4xl: clamp(38px, 6vw, 60px);
+  --leading-tight: 1.06;
+  --leading-body: 1.65;
+  --tracking-display: -0.03em;
+  --tracking-tight: -0.015em;
+  --tracking-mono: 0.16em;
+
+  /* spacing (8px grid) */
+  --s-1: 4px;  --s-2: 8px;   --s-3: 12px;  --s-4: 16px;
+  --s-5: 24px; --s-6: 32px;  --s-7: 48px;  --s-8: 64px;
+  --s-9: 96px; --s-10: 140px;
+
+  /* radius */
+  --r-1: 4px; --r-2: 7px; --r-3: 10px; --r-4: 14px;
+
+  /* shadow */
+  --shadow-1: 0 10px 30px rgba(0,0,0,.45);
+  --shadow-2: 0 30px 80px rgba(0,0,0,.6);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg-0);
+  color: var(--fg-0);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+```
+
+- [ ] **Step 3: Recolor `logo.svg`**
+
+Replace the file's gradient stops so the mark is green. Open `logo.svg`; replace every `stop-color` with these two stops (keep geometry unchanged):
+
+```xml
+<stop offset="0%" stop-color="#2fe6a8"/>
+<stop offset="100%" stop-color="#aef7dc"/>
+```
+
+Also replace any hardcoded `#5DD8E8` / `#7C5CFF` occurrences with `#2fe6a8` / `#aef7dc` respectively.
+
+```bash
+grep -c "7C5CFF\|5DD8E8" logo.svg   # expected: 0 after edit
+```
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add tokens.css logo.svg
+git commit -m "tokens: terminal green system, recolor logo"
+```
+
+---
+
+### Task 2: index.html skeleton — head, nav, base layout, JS scaffolding
+
+**Files:**
+- Modify: `index.html` (full rewrite begins; this task produces a rendering page with nav + empty main + footer stub)
+
+- [ ] **Step 1: Replace `index.html` with the skeleton**
+
+The old file is fully superseded (git preserves it). New content:
+
+```html
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>FluxCompute — The reliability layer for AI agents</title>
+<meta name="description" content="FluxCompute records every agent step into a live execution graph. When a step fails, Flux resumes from the break — on the cheapest model that can finish the job."/>
+<link rel="icon" href="logo.svg" type="image/svg+xml"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="tokens.css"/>
+<style>
+  a { color: inherit; text-decoration: none; }
+  img, svg { max-width: 100%; }
+
+  .container { max-width: 1160px; margin: 0 auto; padding: 0 var(--s-5); }
+  @media (min-width: 881px) { .container { padding: 0 var(--s-6); } }
+
+  /* section rhythm */
+  section { padding: var(--s-9) 0; position: relative; }
+  .eyebrow {
+    display: flex; align-items: center; gap: var(--s-2);
+    font: 500 10px/1 var(--font-mono); letter-spacing: var(--tracking-mono);
+    color: var(--accent); text-transform: uppercase; margin-bottom: var(--s-4);
+  }
+  .eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--accent); opacity: .6; }
+  h2.sec {
+    margin: 0 0 var(--s-3);
+    font: 650 var(--text-2xl)/1.15 var(--font-sans); letter-spacing: var(--tracking-tight);
+  }
+  p.sec-lede { margin: 0 0 var(--s-6); color: var(--fg-1); line-height: var(--leading-body); max-width: 560px; }
+
+  /* buttons */
+  .btn { display: inline-flex; align-items: center; gap: var(--s-2); border-radius: var(--r-2);
+         font-size: var(--text-sm); font-weight: 650; padding: 11px 18px; transition: transform .15s, box-shadow .15s; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-flux { color: #0a0b0e; background: var(--accent-grad); box-shadow: 0 0 24px var(--accent-dim); }
+  .btn-ghost { color: var(--fg-1); border: 1px solid var(--line-2); }
+  .btn-ghost:hover { color: var(--fg-0); border-color: var(--fg-2); }
+  .btn-mono { font-family: var(--font-mono); font-weight: 500; }
+
+  /* nav */
+  nav.top {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+    padding: var(--s-3) var(--s-5);
+    background: color-mix(in srgb, var(--bg-0) 78%, transparent);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line-1);
+  }
+  nav .lockup { display: flex; align-items: center; gap: var(--s-2); min-width: 0; }
+  nav .lockup img { width: 26px; height: 20px; }
+  nav .lockup b { font-size: 14px; font-weight: 650; letter-spacing: var(--tracking-tight); white-space: nowrap; }
+  nav .links { display: flex; gap: var(--s-5); font-size: var(--text-sm); color: var(--fg-1); }
+  nav .links a:hover { color: var(--fg-0); }
+  nav .btn { padding: 8px 14px; flex-shrink: 0; }
+  @media (max-width: 880px) { nav .links { display: none; } }
+
+  /* scroll reveal */
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  .no-motion .reveal { opacity: 1; transform: none; transition: none; }
+
+  /* footer stub (finished in Task 10) */
+  footer { border-top: 1px solid var(--line-1); padding: var(--s-7) 0; color: var(--fg-2); font-size: var(--text-sm); }
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <a class="lockup" href="#top"><img src="logo.svg" alt=""/><b>FluxCompute</b></a>
+  <div class="links">
+    <a href="#how">How it works</a>
+    <a href="#proof">Proof</a>
+    <a href="#cost">Cost</a>
+    <a href="#team">Team</a>
+  </div>
+  <a class="btn btn-flux" href="mailto:ip259@cornell.edu?subject=FluxCompute%20demo">Book a demo</a>
+</nav>
+
+<main id="top">
+  <!-- sections appended in Tasks 3–10 -->
+</main>
+
+<footer>
+  <div class="container">© 2026 FluxCompute</div>
+</footer>
+
+<script>
+  const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (RM) document.documentElement.classList.add('no-motion');
+
+  // scroll reveal
+  const io = new IntersectionObserver((es) => {
+    es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: .15 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
+```
+
+Note: the demo mailto stays `ip259@cornell.edu` (the only address that exists today). When `founders@fluxcompute.dev` is live, it's a find-replace.
+
+- [ ] **Step 2: Verify it renders**
+
+```bash
+python3 -m http.server 8010 &   # if not already running
+"$CHROME" --headless=new --disable-gpu --screenshot="$SHOT/desktop.png" --window-size=1440,900 http://localhost:8010 2>/dev/null
+```
+
+Read the PNG. Expected: dark page, sticky nav with green logo + green CTA, empty body, footer line. No horizontal scrollbar.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add index.html
+git commit -m "site: skeleton — nav, tokens wiring, reveal scaffolding"
+```
+
+---
+
+### Task 3: Hero — the living graph
+
+**Files:**
+- Modify: `index.html` (insert hero section inside `<main>`, hero CSS inside `<style>`, hero JS above closing `</script>` logic)
+
+Port from the prototype `.superpowers/brainstorm/64086-1783149106/content/animated-hero-v2.html`. Changes from prototype: green is the default (drop palette switcher, drop the browser-bar frame), real anchors/hrefs, responsive stacking, reduced-motion handling.
+
+- [ ] **Step 1: Add hero CSS to the `<style>` block**
+
+```css
+  /* === Hero === */
+  .hero { position: relative; overflow: hidden; padding: var(--s-7) 0 var(--s-8);
+          background: radial-gradient(ellipse 100% 80% at 72% 30%, #0d1119 0%, var(--bg-0) 60%); }
+  .hero::after { /* grain */
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .35;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .04 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .hero .grid-bg {
+    position: absolute; inset: 0; pointer-events: none; opacity: .5;
+    background-image: linear-gradient(var(--line-1) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--line-1) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 90% 80% at 65% 40%, black 20%, transparent 78%);
+  }
+  .hero-body { position: relative; z-index: 2; display: grid; grid-template-columns: 44% 56%; align-items: start; }
+  .hero .copy { padding-top: var(--s-6); min-width: 0; }
+  .hero h1 { margin: 0; font: 650 var(--text-4xl)/var(--leading-tight) var(--font-sans); letter-spacing: var(--tracking-display); }
+  .hero h1 .dim { color: var(--fg-2); }
+  .hero h1 .lit { background: var(--accent-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero .lede { color: var(--fg-1); line-height: var(--leading-body); margin: var(--s-4) 0 0; max-width: 400px; }
+  .hero .lede b { color: var(--ok-text); font-weight: 550; }
+  .hero .ctas { display: flex; gap: var(--s-3); margin-top: var(--s-6); flex-wrap: wrap; }
+  .stat-strip { display: flex; gap: var(--s-6); margin-top: var(--s-7); flex-wrap: wrap; }
+  .stat .n { font: 600 17px/1 var(--font-mono); }
+  .stat .l { font-size: 10px; color: var(--fg-2); margin-top: 5px; letter-spacing: .05em; text-transform: uppercase; }
+
+  /* graph stage */
+  .stage { position: relative; min-width: 0; }
+  svg.graph { width: 100%; height: 520px; display: block; }
+  .drift { animation: drift 26s ease-in-out infinite alternate; transform-origin: 310px 260px; }
+  @keyframes drift {
+    0% { transform: translate(0,0) rotate(0deg) scale(1); }
+    50% { transform: translate(-6px,5px) rotate(.4deg) scale(1.012); }
+    100% { transform: translate(5px,-4px) rotate(-.3deg) scale(1); }
+  }
+  .drift-bg { animation: driftbg 34s ease-in-out infinite alternate; }
+  @keyframes driftbg { from { transform: translate(0,0); } to { transform: translate(10px,-8px); } }
+  .halo { animation: breathe 5s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  .halo.h2 { animation-duration: 6.4s; animation-delay: -2s; }
+  .halo.h3 { animation-duration: 7.2s; animation-delay: -4s; }
+  @keyframes breathe { 0%,100% { transform: scale(1); opacity: .85; } 50% { transform: scale(1.28); opacity: 1; } }
+  .edge { stroke: var(--accent); stroke-opacity: .16; stroke-width: 1.1; fill: none; }
+  .edge.lit { stroke-opacity: .4; }
+  .pulse { fill: var(--accent-hi); }
+  .node-core { fill: var(--accent); }
+  .node-core.bright { fill: var(--accent-hi); }
+  text.tag { font: 8.5px var(--font-mono); fill: var(--fg-2); letter-spacing: .04em; }
+
+  #failNode .node-core { transition: fill .3s; }
+  #failEdge { stroke: var(--fail); stroke-width: 1.1; stroke-dasharray: 4 3; fill: none; opacity: 0; transition: opacity .4s; }
+  #failHalo { opacity: 0; transition: opacity .4s; }
+  #recoverPath { stroke: var(--accent-hi); stroke-width: 1.5; fill: none; stroke-dasharray: 220; stroke-dashoffset: 220; opacity: 0; }
+  .phase-fail #failNode .node-core { fill: var(--fail); }
+  .phase-fail #failHalo, .phase-recover #failHalo { opacity: 1; }
+  .phase-fail #failEdge { opacity: .9; }
+  .phase-recover #failNode .node-core { fill: var(--fail); }
+  .phase-recover #failEdge { opacity: .35; }
+  .phase-recover #recoverPath { opacity: 1; animation: draw 1.6s cubic-bezier(.4,0,.2,1) forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  .phase-healed #failNode .node-core { fill: var(--accent-hi); }
+  .phase-healed #recoverPath { opacity: .8; stroke-dashoffset: 0; }
+
+  /* telemetry */
+  .telemetry {
+    position: absolute; right: var(--s-4); bottom: var(--s-4); z-index: 3; width: 298px; max-width: calc(100% - var(--s-5));
+    background: rgba(8,9,12,.82); backdrop-filter: blur(8px);
+    border: 1px solid var(--line-1); border-radius: var(--r-3); overflow: hidden;
+  }
+  .telemetry .th { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--line-1);
+                   font: 9px var(--font-mono); color: var(--fg-2); letter-spacing: .1em; }
+  .telemetry .live { color: var(--accent); display: flex; align-items: center; gap: 5px; }
+  .telemetry .live::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); animation: blink 1.6s infinite; }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+  .tlog { padding: 9px 12px 11px; font: 9.5px/1.9 var(--font-mono); }
+  .tlog .row { display: flex; gap: 8px; white-space: nowrap; overflow: hidden; }
+  .tlog .t { color: var(--fg-2); } .tlog .ok { color: var(--ok-text); }
+  .tlog .warn { color: var(--fail); } .tlog .acc { color: var(--accent); }
+  .tlog .row.new { animation: slidein .3s ease; }
+  @keyframes slidein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  /* reduced motion: freeze ambient, show healed end-state */
+  .no-motion .drift, .no-motion .drift-bg, .no-motion .halo,
+  .no-motion .telemetry .live::before, .no-motion .tlog .row.new { animation: none; }
+  .no-motion #recoverPath { opacity: .8; stroke-dashoffset: 0; }
+  .no-motion #failNode .node-core { fill: var(--accent-hi); }
+
+  @media (max-width: 880px) {
+    .hero-body { grid-template-columns: 1fr; }
+    svg.graph { height: 380px; }
+    .hero .copy { padding-top: var(--s-4); }
+  }
+```
+
+- [ ] **Step 2: Add hero HTML inside `<main>`**
+
+```html
+<section class="hero">
+  <div class="grid-bg"></div>
+  <div class="container hero-body">
+    <div class="copy">
+      <div class="eyebrow">Execution graphs for AI agents</div>
+      <h1>Agents fail.<br/><span class="dim">Yours won't</span><br/><span class="lit">stay failed.</span></h1>
+      <p class="lede">Flux records every step of your agent into a live execution graph. When a step breaks mid-task, <b>we resume from the break</b> — re-routed to the cheapest model that can finish the job.</p>
+      <div class="ctas">
+        <a class="btn btn-flux" href="mailto:ip259@cornell.edu?subject=FluxCompute%20demo">Book a demo</a>
+        <a class="btn btn-ghost btn-mono" href="https://pypi.org/project/fluxcompute/0.1.0/">$ pip install fluxcompute</a>
+      </div>
+      <div class="stat-strip">
+        <div class="stat"><div class="n">−64%</div><div class="l">inference spend</div></div>
+        <div class="stat"><div class="n">0</div><div class="l">lost tasks</div></div>
+        <div class="stat"><div class="n">1 line</div><div class="l">to integrate</div></div>
+      </div>
+    </div>
+    <div class="stage" id="stage">
+      <!-- constellation SVG: copy the entire <svg class="graph">…</svg> block VERBATIM from
+           .superpowers/brainstorm/64086-1783149106/content/animated-hero-v2.html
+           (defs #ng/#halo/#haloF, drift-bg distant layer, drift main layer with edges e1–e10,
+           failEdge, recoverPath, halos, node cores, tags plan/retrieve/ingest/tool-call/
+           synthesize/verify/deliver/write-report, and the five animateMotion pulses) -->
+      <div class="telemetry">
+        <div class="th"><span>FLUX · EXECUTION LOG</span><span class="live">LIVE</span></div>
+        <div class="tlog" id="tlog"></div>
+      </div>
+    </div>
+  </div>
+</section>
+```
+
+- [ ] **Step 3: Add hero JS above the reveal-observer code**
+
+```js
+  /* telemetry + failure cycle */
+  const stage = document.getElementById('stage');
+  const tlog = document.getElementById('tlog');
+  function log(html) {
+    const r = document.createElement('div');
+    r.className = 'row new'; r.innerHTML = html;
+    tlog.appendChild(r);
+    while (tlog.children.length > 6) tlog.removeChild(tlog.firstChild);
+  }
+  const ts = () => `<span class="t">${new Date().toTimeString().slice(0,8)}</span>`;
+  const idle = [
+    () => log(`${ts()} <span class="ok">step ok</span> · plan → retrieve <span class="t">· 212ms</span>`),
+    () => log(`${ts()} <span class="acc">route</span> · synthesize → <span class="ok">mid-tier</span> <span class="t">· $0.0031</span>`),
+    () => log(`${ts()} <span class="ok">step ok</span> · tool-call:search <span class="t">· 640ms</span>`),
+    () => log(`${ts()} <span class="acc">route</span> · verify → <span class="ok">small-tier</span> <span class="t">· $0.0004</span>`),
+    () => log(`${ts()} <span class="ok">cache hit</span> · context reused <span class="t">· −1,842 tok</span>`),
+  ];
+  let li = 0, ct = 0;
+  function tick() {
+    const phase = ++ct % 14;
+    if (phase === 8) { stage.classList.add('phase-fail');
+      log(`${ts()} <span class="warn">step failed</span> · write-report <span class="t">· context_overflow</span>`); }
+    else if (phase === 10) { stage.classList.replace('phase-fail','phase-recover');
+      log(`${ts()} <span class="acc">resume</span> · graph-aware · from step 7/9`); }
+    else if (phase === 12) { stage.classList.replace('phase-recover','phase-healed');
+      log(`${ts()} <span class="ok">recovered</span> · re-routed <span class="t">· saved $0.42 vs replay</span>`); }
+    else if (phase === 0) { stage.classList.remove('phase-healed'); }
+    else if (phase % 2 === 0) { idle[li++ % idle.length](); }
+  }
+  idle[0](); idle[1](); idle[2]();
+  if (!RM) setInterval(tick, 1100); else stage.classList.add('phase-healed');
+```
+
+- [ ] **Step 4: Verify — desktop and mobile screenshots**
+
+```bash
+"$CHROME" --headless=new --disable-gpu --screenshot="$SHOT/desktop.png" --window-size=1440,1400 http://localhost:8010 2>/dev/null
+"$CHROME" --headless=new --disable-gpu --screenshot="$SHOT/mobile.png" --window-size=390,1800 http://localhost:8010 2>/dev/null
+```
+
+Read both PNGs. Expected: desktop = copy left / green constellation right, telemetry panel bottom-right with log rows; mobile = copy stacked above graph, nothing clipped, no horizontal overflow (headline wraps, pip button wraps or fits).
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add index.html
+git commit -m "hero: animated execution-graph constellation with live telemetry"
+```
+
+---
+
+### Task 4: Problem section — "long-running agents die in the dark"
+
+**Files:**
+- Modify: `index.html` (append section after hero; CSS into `<style>`)
+
+- [ ] **Step 1: Add CSS**
+
+```css
+  /* === Problem === */
+  .problem { border-top: 1px solid var(--line-1); background: var(--bg-0); }
+  .fail-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); margin-top: var(--s-6); }
+  .fail-card {
+    background: var(--bg-1); border: 1px solid var(--line-1); border-radius: var(--r-3);
+    padding: var(--s-5); min-width: 0;
+  }
+  .fail-card .fh { display: flex; align-items: center; gap: var(--s-2); font: 500 11px var(--font-mono); color: var(--fail); }
+  .fail-card .fh::before { content: "✗"; }
+  .fail-card p { margin: var(--s-3) 0 0; color: var(--fg-1); font-size: var(--text-sm); line-height: var(--leading-body); }
+  .replay-line {
+    margin-top: var(--s-6); padding: var(--s-4) var(--s-5);
+    border: 1px dashed rgba(255,77,94,.35); border-radius: var(--r-3);
+    font: 500 var(--text-sm)/1.7 var(--font-mono); color: var(--fg-1); overflow-x: auto;
+  }
+  .replay-line b { color: var(--fail); font-weight: 600; }
+  .replay-line .fix { color: var(--accent); }
+  @media (max-width: 880px) { .fail-cards { grid-template-columns: 1fr; } }
+```
+
+- [ ] **Step 2: Add HTML after the hero section**
+
+```html
+<section class="problem" id="problem">
+  <div class="container">
+    <div class="eyebrow reveal">The problem</div>
+    <h2 class="sec reveal">Long-running agents die in the dark.</h2>
+    <p class="sec-lede reveal">A 40-step research task fails at step 37. Today you replay all 40 — every token, every tool call, every minute — and hope it doesn't happen again. It happens again.</p>
+    <div class="fail-cards">
+      <div class="fail-card reveal">
+        <div class="fh">context_overflow</div>
+        <p>The window fills mid-task and the model silently drops the thing it needed most. The failure surfaces three steps later, somewhere else.</p>
+      </div>
+      <div class="fail-card reveal">
+        <div class="fh">tool_error</div>
+        <p>A flaky API returns one 500 and the whole run is dead — even though 36 steps of perfectly good work already succeeded.</p>
+      </div>
+      <div class="fail-card reveal">
+        <div class="fh">model_stall</div>
+        <p>The model loops, refuses, or times out at 2 a.m. Nobody notices until morning. The logs won't tell you which step, or why.</p>
+      </div>
+    </div>
+    <div class="replay-line reveal">without flux: <b>fail @ step 37 → replay 40 steps → 2× cost, 0 answers</b><br/>with flux:&nbsp;&nbsp;&nbsp; <span class="fix">fail @ step 37 → resume @ step 37 → done</span></div>
+  </div>
+</section>
+```
+
+- [ ] **Step 3: Verify (screenshots as in Task 3) — cards render 3-up desktop / stacked mobile, no clipped mono text (replay-line scrolls within itself if narrow)**
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add index.html
+git commit -m "problem: three failure modes and the replay tax"
+```
+
+---
+
+### Task 5: How it works — 4 pillars
+
+**Files:**
+- Modify: `index.html`
+
+- [ ] **Step 1: Add CSS**
+
+```css
+  /* === How it works === */
+  .how { border-top: 1px solid var(--line-1); }
+  .pillars { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); margin-top: var(--s-6); }
+  .pillar { background: var(--bg-1); border: 1px solid var(--line-1); border-radius: var(--r-3); padding: var(--s-5); min-width: 0; }
+  .pillar .num { font: 600 11px var(--font-mono); color: var(--accent); letter-spacing: .1em; }
+  .pillar h3 { margin: var(--s-2) 0 var(--s-2); font: 650 var(--text-lg)/1.25 var(--font-sans); letter-spacing: var(--tracking-tight); }
+  .pillar p { margin: 0; color: var(--fg-1); font-size: var(--text-sm); line-height: var(--leading-body); }
+  .pillar .detail { margin-top: var(--s-3); font: 400 11px/1.7 var(--font-mono); color: var(--fg-2); overflow-wrap: anywhere; }
+  .pillar svg { display: block; margin: var(--s-4) 0 0; }
+  @media (max-width: 880px) { .pillars { grid-template-columns: 1fr; } }
+```
+
+- [ ] **Step 2: Add HTML**
+
+Each pillar's mini-diagram is a small inline SVG in-system (green nodes/edges, red where relevant). Complete markup:
+
+```html
+<section class="how" id="how">
+  <div class="container">
+    <div class="eyebrow reveal">How it works</div>
+    <h2 class="sec reveal">One graph. Four consequences.</h2>
+    <p class="sec-lede reveal">Point your agent at Flux — LangGraph, CrewAI, or your own loop. Everything else falls out of the execution graph it builds automatically.</p>
+    <div class="pillars">
+      <div class="pillar reveal">
+        <div class="num">01</div>
+        <h3>Automatic execution graph</h3>
+        <p>Every LLM call and tool call is recorded into a DAG via context propagation. No decorators to sprinkle, no manual instrumentation — it works with any framework, or none.</p>
+        <svg width="220" height="56" viewBox="0 0 220 56" aria-hidden="true">
+          <g stroke="#2fe6a8" stroke-opacity=".35" fill="none"><path d="M14 28 H62"/><path d="M76 28 H124"/><path d="M138 28 H186"/></g>
+          <g fill="#2fe6a8"><circle cx="14" cy="28" r="4"/><circle cx="69" cy="28" r="4"/><circle cx="131" cy="28" r="4"/><circle cx="193" cy="28" r="4"/></g>
+        </svg>
+      </div>
+      <div class="pillar reveal">
+        <div class="num">02</div>
+        <h3>Failure classification</h3>
+        <p>Context overflow, tool error, budget breach, stall, refusal — classified the moment they happen and surfaced in the dashboard, not buried in a log file.</p>
+        <div class="detail">context_overflow · tool_error · budget · stall · refusal</div>
+      </div>
+      <div class="pillar reveal">
+        <div class="num">03</div>
+        <h3>Graph-aware resume</h3>
+        <p>Resume rebuilds the minimum context from the steps that succeeded — not a full-transcript replay — and re-runs only what broke.</p>
+        <svg width="220" height="56" viewBox="0 0 220 56" aria-hidden="true">
+          <g stroke="#2fe6a8" stroke-opacity=".35" fill="none"><path d="M14 28 H62"/><path d="M76 28 H124"/></g>
+          <path d="M131 28 H180" stroke="#ff4d5e" stroke-dasharray="4 3" fill="none"/>
+          <path d="M131 28 Q 160 8 193 24" stroke="#aef7dc" fill="none"/>
+          <g fill="#2fe6a8"><circle cx="14" cy="28" r="4"/><circle cx="69" cy="28" r="4"/><circle cx="131" cy="28" r="4"/></g>
+          <circle cx="193" cy="26" r="4" fill="#aef7dc"/>
+        </svg>
+      </div>
+      <div class="pillar reveal">
+        <div class="num">04</div>
+        <h3>Cost-aware routing</h3>
+        <p>The same intelligence that picks the cheapest capable model on the happy path decides the right model on retry. Reliability and savings are one decision, not two systems.</p>
+        <div class="detail">+ KV-cache persistence across steps · on-prem context compression</div>
+      </div>
+    </div>
+  </div>
+</section>
+```
+
+- [ ] **Step 3: Verify (screenshots) — 2×2 desktop, stacked mobile, diagrams render**
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add index.html
+git commit -m "how it works: execution graph pillars"
+```
+
+---
+
+### Task 6: Product proof — dashboard recreation
+
+**Files:**
+- Modify: `index.html`
+
+- [ ] **Step 1: Add CSS**
+
+```css
+  /* === Proof / dashboard === */
+  .proof { border-top: 1px solid var(--line-1); background: var(--bg-0); }
+  .dash {
+    margin-top: var(--s-6); border: 1px solid var(--line-2); border-radius: var(--r-4);
+    background: var(--bg-1); box-shadow: var(--shadow-2); overflow: hidden;
+  }
+  .dash .bar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: var(--bg-2); border-bottom: 1px solid var(--line-1); }
+  .dash .bar i { width: 9px; height: 9px; border-radius: 50%; background: #272b34; }
+  .dash .bar span { margin-left: 10px; font: 10px var(--font-mono); color: var(--fg-2); }
+  .dash-body { display: grid; grid-template-columns: 58% 42%; }
+  .dash-left { padding: var(--s-5); border-right: 1px solid var(--line-1); min-width: 0; }
+  .dash-right { padding: var(--s-5); min-width: 0; }
+  .dash h4 { margin: 0 0 var(--s-3); font: 600 11px var(--font-mono); color: var(--fg-2); letter-spacing: .1em; text-transform: uppercase; }
+  .dash svg { display: block; width: 100%; }
+  .ftable { width: 100%; border-collapse: collapse; font: 11px/1.5 var(--font-mono); }
+  .ftable th { text-align: left; color: var(--fg-2); font-weight: 500; padding: 6px 8px; border-bottom: 1px solid var(--line-1); }
+  .ftable td { padding: 7px 8px; border-bottom: 1px solid var(--line-1); color: var(--fg-1); }
+  .ftable .w { color: var(--fail); } .ftable .g { color: var(--accent); }
+  .rollup { display: flex; gap: var(--s-5); margin-top: var(--s-5); flex-wrap: wrap; }
+  .rollup .r .n { font: 600 16px var(--font-mono); color: var(--fg-0); }
+  .rollup .r .l { font-size: 10px; color: var(--fg-2); text-transform: uppercase; letter-spacing: .05em; margin-top: 4px; }
+  .dash-caption { margin-top: var(--s-4); font: 11px var(--font-mono); color: var(--fg-2); }
+  .dash-caption code { color: var(--accent); }
+  @media (max-width: 880px) { .dash-body { grid-template-columns: 1fr; } .dash-left { border-right: 0; border-bottom: 1px solid var(--line-1); } .dash-right .ftable { display: block; overflow-x: auto; } }
+```
+
+- [ ] **Step 2: Add HTML**
+
+```html
+<section class="proof" id="proof">
+  <div class="container">
+    <div class="eyebrow reveal">See it working</div>
+    <h2 class="sec reveal">Every task, mapped. Every failure, named.</h2>
+    <p class="sec-lede reveal">The Task Graphs view — the DAG of a real run, colored by status, with the failure classified and the recovery costed.</p>
+    <div class="dash reveal">
+      <div class="bar"><i></i><i></i><i></i><span>flux dashboard — task graphs</span></div>
+      <div class="dash-body">
+        <div class="dash-left">
+          <h4>task: market-research · run #147</h4>
+          <svg viewBox="0 0 520 240" aria-label="Execution DAG for task market-research">
+            <g stroke="#2fe6a8" stroke-opacity=".3" fill="none">
+              <path d="M40 120 Q 90 70 150 80"/><path d="M150 80 Q 220 60 280 90"/>
+              <path d="M40 120 Q 100 170 170 165"/><path d="M170 165 Q 235 175 280 90"/>
+              <path d="M280 90 Q 350 95 400 130"/>
+            </g>
+            <path d="M170 165 Q 230 215 300 205" stroke="#ff4d5e" stroke-dasharray="4 3" fill="none"/>
+            <path d="M170 165 Q 300 190 400 130" stroke="#aef7dc" fill="none"/>
+            <g fill="#2fe6a8">
+              <circle cx="40" cy="120" r="6"/><circle cx="150" cy="80" r="6"/>
+              <circle cx="170" cy="165" r="6"/><circle cx="280" cy="90" r="6"/>
+            </g>
+            <circle cx="300" cy="205" r="6" fill="#ff4d5e"/>
+            <circle cx="400" cy="130" r="6" fill="#aef7dc"/>
+            <g font-family="JetBrains Mono, monospace" font-size="9" fill="#5c6472">
+              <text x="28" y="140">ingest</text><text x="138" y="68">plan</text>
+              <text x="140" y="185">tool-call</text><text x="268" y="78">synthesize</text>
+              <text x="278" y="225" fill="#8a4640">write-report ✗</text><text x="388" y="118">deliver ✓</text>
+            </g>
+          </svg>
+          <div class="rollup">
+            <div class="r"><div class="n">9/9</div><div class="l">steps complete</div></div>
+            <div class="r"><div class="n">1</div><div class="l">failure recovered</div></div>
+            <div class="r"><div class="n">$0.184</div><div class="l">task cost</div></div>
+            <div class="r"><div class="n">$0.42</div><div class="l">saved vs replay</div></div>
+          </div>
+        </div>
+        <div class="dash-right">
+          <h4>failure reasons · last 24h</h4>
+          <table class="ftable">
+            <tr><th>reason</th><th>count</th><th>recovered</th></tr>
+            <tr><td class="w">context_overflow</td><td>7</td><td class="g">7/7</td></tr>
+            <tr><td class="w">tool_error</td><td>4</td><td class="g">4/4</td></tr>
+            <tr><td class="w">stall</td><td>2</td><td class="g">2/2</td></tr>
+            <tr><td class="w">refusal</td><td>1</td><td class="g">1/1</td></tr>
+            <tr><td class="w">budget</td><td>1</td><td class="g">1/1</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <p class="dash-caption reveal">Demo workload — reproduce it yourself: <code>pip install fluxcompute</code></p>
+  </div>
+</section>
+```
+
+- [ ] **Step 3: Verify (screenshots) — dashboard frame renders, table scrolls within itself on mobile, caption honest**
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add index.html
+git commit -m "proof: task-graphs dashboard recreation with honest captioning"
+```
+
+---
+
+### Task 7: Code — the resume snippet
+
+**Files:**
+- Modify: `index.html`
+
+- [ ] **Step 1: Add CSS**
+
+```css
+  /* === Code === */
+  .codesec { border-top: 1px solid var(--line-1); }
+  .term {
+    margin-top: var(--s-6); background: var(--bg-1); border: 1px solid var(--line-2);
+    border-radius: var(--r-4); overflow: hidden; box-shadow: var(--shadow-1); max-width: 720px;
+  }
+  .term .bar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: var(--bg-2); border-bottom: 1px solid var(--line-1); }
+  .term .bar i { width: 9px; height: 9px; border-radius: 50%; background: #272b34; }
+  .term .bar span { margin-left: 10px; font: 10px var(--font-mono); color: var(--fg-2); }
+  .term pre { margin: 0; padding: var(--s-5); font: 12.5px/1.8 var(--font-mono); color: var(--fg-1); overflow-x: auto; }
+  .term .kw { color: var(--accent); } .term .str { color: var(--ok-text); } .term .cm { color: var(--fg-2); }
+  .code-kicker { margin-top: var(--s-4); color: var(--fg-1); font-size: var(--text-sm); max-width: 560px; line-height: var(--leading-body); }
+  .code-kicker b { color: var(--ok-text); }
+```
+
+- [ ] **Step 2: Add HTML**
+
+```html
+<section class="codesec" id="code">
+  <div class="container">
+    <div class="eyebrow reveal">The API</div>
+    <h2 class="sec reveal">Resume is one call.</h2>
+    <div class="term reveal">
+      <div class="bar"><i></i><i></i><i></i><span>agent.py</span></div>
+      <pre><span class="kw">with</span> client.task(<span class="str">"market-research"</span>) <span class="kw">as</span> t:
+    result = <span class="kw">await</span> client.messages.create(...)
+    <span class="kw">with</span> client.step(<span class="str">"fetch-pricing-data"</span>) <span class="kw">as</span> s:
+        s.set_output(pricing_data)
+    <span class="cm"># a step fails deep into the task…</span>
+
+<span class="cm"># instead of restarting from scratch:</span>
+response = <span class="kw">await</span> client.resume(t.task_id)
+<span class="cm"># → minimal context from succeeded steps, failed step re-routed</span></pre>
+    </div>
+    <p class="code-kicker reveal">LangGraph can't do cost-aware resume. Temporal can't do model-aware resume. <b>Flux is both</b> — because the graph and the router are the same system.</p>
+  </div>
+</section>
+```
+
+- [ ] **Step 3: Verify (screenshots) — snippet renders with green keywords, `pre` scrolls horizontally on mobile inside its own box**
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add index.html
+git commit -m "code: task/resume snippet with competitive framing"
+```
+
+---
+
+### Task 8: Cost — reliability that pays for itself
+
+**Files:**
+- Modify: `index.html`
+
+- [ ] **Step 1: Add CSS**
+
+```css
+  /* === Cost === */
+  .cost { border-top: 1px solid var(--line-1); background: var(--bg-0); }
+  .meter-wrap { margin-top: var(--s-6); max-width: 640px; }
+  .meter-row { display: flex; align-items: center; gap: var(--s-4); margin-bottom: var(--s-4); min-width: 0; }
+  .meter-row .lab { width: 96px; flex-shrink: 0; font: 500 11px var(--font-mono); color: var(--fg-2); }
+  .meter-track { flex: 1; height: 26px; background: var(--bg-2); border: 1px solid var(--line-1); border-radius: var(--r-1); overflow: hidden; }
+  .meter-fill { height: 100%; width: 0; border-radius: 2px; transition: width 1.4s cubic-bezier(.4,0,.2,1); }
+  .meter-row .val { width: 64px; flex-shrink: 0; text-align: right; font: 600 13px var(--font-mono); }
+  .m-base .meter-fill { background: #2a2f3a; }
+  .m-base .val { color: var(--fg-1); }
+  .m-flux .meter-fill { background: var(--accent-grad); box-shadow: 0 0 18px var(--accent-dim); }
+  .m-flux .val { color: var(--accent); }
+  .in .m-base .meter-fill { width: 100%; }
+  .in .m-flux .meter-fill { width: 36%; }
+  .no-motion .m-base .meter-fill { width: 100%; transition: none; }
+  .no-motion .m-flux .meter-fill { width: 36%; transition: none; }
+  .method-note { margin-top: var(--s-4); font: 11px var(--font-mono); color: var(--fg-2); }
+```
+
+- [ ] **Step 2: Add HTML**
+
+```html
+<section class="cost" id="cost">
+  <div class="container">
+    <div class="eyebrow reveal">Cost</div>
+    <h2 class="sec reveal">Reliability that pays for itself.</h2>
+    <p class="sec-lede reveal">Most queries don't need a frontier model. Flux routes each step to the cheapest model that holds accuracy — and applies the same judgment when it retries a failed one.</p>
+    <div class="meter-wrap reveal">
+      <div class="meter-row m-base"><div class="lab">direct-to-frontier</div><div class="meter-track"><div class="meter-fill"></div></div><div class="val">1.00×</div></div>
+      <div class="meter-row m-flux"><div class="lab">with flux</div><div class="meter-track"><div class="meter-fill"></div></div><div class="val">0.36×</div></div>
+      <p class="method-note">Demo workload, mixed difficulty · reproducible with <code style="color:var(--accent)">pip install fluxcompute</code> and your own keys</p>
+    </div>
+  </div>
+</section>
+```
+
+(The `.reveal.in` class added by the existing IntersectionObserver triggers the bar animation — no extra JS.)
+
+- [ ] **Step 3: Verify (screenshots + confirm bars animate on scroll in a quick manual look if possible)**
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add index.html
+git commit -m "cost: animated savings meter with methodology note"
+```
+
+---
+
+### Task 9: Team + design partners
+
+**Files:**
+- Modify: `index.html`
+
+- [ ] **Step 1: Add CSS**
+
+```css
+  /* === Team === */
+  .team { border-top: 1px solid var(--line-1); }
+  .team-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); margin-top: var(--s-6); }
+  .tcard { background: var(--bg-1); border: 1px solid var(--line-1); border-radius: var(--r-3); padding: var(--s-5); min-width: 0; }
+  .tcard .av { width: 44px; height: 44px; border-radius: 50%; background: var(--accent-grad);
+               display: flex; align-items: center; justify-content: center; color: #0a0b0e; font-weight: 700; }
+  .tcard h3 { margin: var(--s-3) 0 2px; font: 650 var(--text-md)/1.2 var(--font-sans); }
+  .tcard .role { font: 500 11px var(--font-mono); color: var(--accent); }
+  .tcard p { color: var(--fg-1); font-size: var(--text-sm); line-height: var(--leading-body); margin: var(--s-3) 0 0; }
+  .tcard .mail { display: inline-block; margin-top: var(--s-3); font: 11px var(--font-mono); color: var(--fg-2); overflow-wrap: anywhere; }
+  .tcard .mail:hover { color: var(--accent); }
+  .bg-line { margin-top: var(--s-5); font-size: var(--text-sm); color: var(--fg-2); }
+  .bg-line b { color: var(--fg-1); font-weight: 500; }
+  .partner {
+    margin-top: var(--s-7); border: 1px solid var(--line-2); border-radius: var(--r-4);
+    padding: var(--s-6); background: linear-gradient(180deg, var(--bg-1), var(--bg-0));
+    display: flex; justify-content: space-between; align-items: center; gap: var(--s-5); flex-wrap: wrap;
+  }
+  .partner h3 { margin: 0 0 var(--s-2); font: 650 var(--text-xl)/1.2 var(--font-sans); letter-spacing: var(--tracking-tight); }
+  .partner p { margin: 0; color: var(--fg-1); font-size: var(--text-sm); max-width: 480px; line-height: var(--leading-body); }
+  @media (max-width: 880px) { .team-grid { grid-template-columns: 1fr; } }
+```
+
+- [ ] **Step 2: Add HTML**
+
+```html
+<section class="team" id="team">
+  <div class="container">
+    <div class="eyebrow reveal">Team</div>
+    <h2 class="sec reveal">Built by the people who run it.</h2>
+    <div class="team-grid">
+      <div class="tcard reveal">
+        <div class="av">I</div>
+        <h3>Ishan Patwardhan</h3>
+        <div class="role">co-founder</div>
+        <p>Built FluxCompute's routing and execution-graph layer. Previously: inference research at MIT CSAIL (hierarchical MoE, DAG-based token routing), SWE at Google on Gemini evaluation and context engineering, HPC systems at HPE. Researcher at Cornell Tech in agentic systems and hardware-software co-design.</p>
+        <a class="mail" href="mailto:ip259@cornell.edu">ip259@cornell.edu</a>
+      </div>
+      <div class="tcard reveal">
+        <div class="av">N</div>
+        <h3>Niki Karanikola</h3>
+        <div class="role">co-founder</div>
+        <p>Two years shipping production LLM inference, dense retrieval, and RAG pipelines at Veolia — re-architected enterprise knowledge access from weeks to minutes, 6× faster reporting cadence, +20% NDCG. Researcher at Cornell Tech's Social Technologies Lab.</p>
+        <a class="mail" href="mailto:nk699@cornell.edu">nk699@cornell.edu</a>
+      </div>
+    </div>
+    <p class="bg-line reveal">Our team's background: <b>Cornell Tech · MIT CSAIL · Google · Veolia · HPE</b></p>
+    <div class="partner reveal">
+      <div>
+        <h3>We're onboarding early design partners.</h3>
+        <p>Running agents in production — or trying to? We'll wire Flux under your stack with you, and you get direct access to the people who built it.</p>
+      </div>
+      <a class="btn btn-flux" href="mailto:ip259@cornell.edu?subject=FluxCompute%20design%20partner">Become a design partner</a>
+    </div>
+  </div>
+</section>
+```
+
+- [ ] **Step 3: Verify (screenshots) — cards 2-up desktop / stacked mobile, background line clearly labeled, partner banner wraps cleanly**
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add index.html
+git commit -m "team: shipped-first bios, labeled background line, design-partner ask"
+```
+
+---
+
+### Task 10: Final CTA + footer
+
+**Files:**
+- Modify: `index.html` (closing section + replace footer stub)
+
+- [ ] **Step 1: Add CSS**
+
+```css
+  /* === Final CTA === */
+  .fin { border-top: 1px solid var(--line-1); text-align: center; overflow: hidden; position: relative;
+         background: radial-gradient(ellipse 70% 90% at 50% 110%, #0d1410 0%, var(--bg-0) 65%); }
+  .fin h2 { margin: 0 0 var(--s-3); font: 650 var(--text-3xl)/1.1 var(--font-sans); letter-spacing: var(--tracking-display); }
+  .fin h2 .lit { background: var(--accent-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .fin p { margin: 0 auto var(--s-6); color: var(--fg-1); max-width: 460px; line-height: var(--leading-body); }
+  .fin .mini-graph { margin: 0 auto var(--s-6); opacity: .8; }
+  footer .cols { display: flex; justify-content: space-between; gap: var(--s-5); flex-wrap: wrap; align-items: center; }
+  footer .flinks { display: flex; gap: var(--s-5); flex-wrap: wrap; }
+  footer a:hover { color: var(--fg-0); }
+```
+
+- [ ] **Step 2: Add final section HTML + replace footer stub content**
+
+```html
+<section class="fin">
+  <div class="container">
+    <svg class="mini-graph" width="260" height="60" viewBox="0 0 260 60" aria-hidden="true">
+      <g stroke="#2fe6a8" stroke-opacity=".3" fill="none"><path d="M20 30 Q 70 10 120 26"/><path d="M120 26 Q 180 40 240 24"/></g>
+      <g fill="#2fe6a8"><circle cx="20" cy="30" r="4"/><circle cx="120" cy="26" r="5"/></g>
+      <circle cx="240" cy="24" r="4" fill="#aef7dc"/>
+    </svg>
+    <h2>Your agents, <span class="lit">un-killable.</span></h2>
+    <p>Twenty minutes with the founders. Bring your worst-failing agent — we'll show you its execution graph.</p>
+    <a class="btn btn-flux" href="mailto:ip259@cornell.edu?subject=FluxCompute%20demo">Book a demo</a>
+  </div>
+</section>
+```
+
+Footer (replace the stub inside `<footer>`):
+
+```html
+  <div class="container cols">
+    <div>© 2026 FluxCompute — the reliability layer for AI agents</div>
+    <div class="flinks">
+      <a href="https://pypi.org/project/fluxcompute/0.1.0/">PyPI</a>
+      <a href="https://docs.fluxcompute.dev">Docs</a>
+      <a href="mailto:ip259@cornell.edu">Contact</a>
+    </div>
+  </div>
+```
+
+- [ ] **Step 3: Verify (full-page screenshots desktop + mobile)**
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add index.html
+git commit -m "final CTA and footer"
+```
+
+---
+
+### Task 11: Full-page audit — responsive, reduced-motion, weight
+
+**Files:**
+- Modify: `index.html` (fixes only)
+
+- [ ] **Step 1: Screenshot at all three widths and inspect every section**
+
+```bash
+"$CHROME" --headless=new --disable-gpu --screenshot="$SHOT/audit-390.png"  --window-size=390,7000  http://localhost:8010 2>/dev/null
+"$CHROME" --headless=new --disable-gpu --screenshot="$SHOT/audit-768.png"  --window-size=768,6000  http://localhost:8010 2>/dev/null
+"$CHROME" --headless=new --disable-gpu --screenshot="$SHOT/audit-1440.png" --window-size=1440,5000 http://localhost:8010 2>/dev/null
+```
+
+Read each PNG. Checklist per spec: nothing clipped at 390px (nav CTA, headline, telemetry, card metadata, tables); mono rows either wrap or scroll within their own container; grids collapse at 880px.
+
+- [ ] **Step 2: Programmatic overflow check**
+
+```bash
+"$CHROME" --headless=new --disable-gpu --dump-dom --window-size=390,2000 http://localhost:8010 2>/dev/null | grep -c "white-space: *nowrap\|white-space:nowrap"
+```
+
+Expected: only the intentional ones (nav lockup, tlog rows — both inside overflow-hidden containers). Also verify no element wider than viewport:
+
+```bash
+"$CHROME" --headless=new --disable-gpu --window-size=390,2000 --virtual-time-budget=4000 \
+  --run-all-compositor-stages-before-draw --dump-dom http://localhost:8010 2>/dev/null > /dev/null
+# then manually: open http://localhost:8010 in responsive devtools at 390px and confirm
+# document.documentElement.scrollWidth === 390
+```
+
+- [ ] **Step 3: Reduced-motion spot check**
+
+Temporarily force it: in devtools or by adding `?rm=1` handling is overkill — instead run once with the class hardcoded:
+
+```bash
+# quick check: inject class via JS-less approach — edit <html> tag to <html class="no-motion" …>, screenshot, revert
+```
+
+Expected: page fully readable, graph shows healed end-state, meters filled, no reveals hidden.
+
+- [ ] **Step 4: Page-weight check**
+
+```bash
+wc -c index.html tokens.css logo.svg
+```
+
+Expected total < 300KB (should be well under — target ~120KB).
+
+- [ ] **Step 5: Fix anything found, re-screenshot, then commit**
+
+```bash
+git add index.html tokens.css
+git commit -m "audit: responsive, reduced-motion, and weight fixes"
+```
+
+---
+
+### Task 12: Merge + wrap-up
+
+- [ ] **Step 1: Final review of the diff**
+
+```bash
+git diff master..redesign/terminal-green --stat
+```
+
+- [ ] **Step 2: Merge to master (after user sees the site)**
+
+```bash
+git checkout master && git merge redesign/terminal-green
+```
+
+- [ ] **Step 3: Remind the user of follow-ups (do not do them):** regenerate `Design System.html` for the green system; swap demo mailto to `founders@fluxcompute.dev` once the mailbox exists; add GitHub link when the SDK repo goes public; push to deploy.
