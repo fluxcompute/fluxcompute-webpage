@@ -228,6 +228,25 @@
   .term .kw { color: var(--accent); } .term .str { color: var(--ok-text); } .term .cm { color: var(--fg-2); }
   .code-kicker { margin-top: var(--s-4); color: var(--fg-1); font-size: var(--text-sm); max-width: 560px; line-height: var(--leading-body); }
   .code-kicker b { color: var(--ok-text); }
+
+  /* === Cost === */
+  .cost { border-top: 1px solid var(--line-1); background: var(--bg-0); }
+  .meter-wrap { margin-top: var(--s-6); max-width: 640px; }
+  .meter-row { display: flex; align-items: center; gap: var(--s-4); margin-bottom: var(--s-4); min-width: 0; }
+  .meter-row .lab { width: 110px; flex-shrink: 0; font: 500 11px var(--font-mono); color: var(--fg-2); }
+  .meter-track { flex: 1; height: 26px; background: var(--bg-2); border: 1px solid var(--line-1); border-radius: var(--r-1); overflow: hidden; }
+  .meter-fill { height: 100%; width: 0; border-radius: 2px; transition: width 1.4s cubic-bezier(.4,0,.2,1); }
+  .meter-row .val { width: 56px; flex-shrink: 0; text-align: right; font: 600 13px var(--font-mono); }
+  .m-base .meter-fill { background: #2a2f3a; }
+  .m-base .val { color: var(--fg-1); }
+  .m-flux .meter-fill { background: var(--accent-grad); box-shadow: 0 0 18px var(--accent-dim); }
+  .m-flux .val { color: var(--accent); }
+  .meter-wrap.in .m-base .meter-fill { width: 100%; }
+  .meter-wrap.in .m-flux .meter-fill { width: 36%; }
+  .no-motion .m-base .meter-fill { width: 100%; transition: none; }
+  .no-motion .m-flux .meter-fill { width: 36%; transition: none; }
+  .method-note { margin-top: var(--s-4); font: 11px var(--font-mono); color: var(--fg-2); }
+  .method-note code { color: var(--accent); }
 </style>
 </head>
 <body>
@@ -515,6 +534,19 @@ response = <span class="kw">await</span> client.resume(t.task_id)
 <span class="cm"># → minimal context from succeeded steps, failed step re-routed</span></pre>
     </div>
     <p class="code-kicker reveal">LangGraph can't do cost-aware resume. Temporal can't do model-aware resume. <b>Flux is both</b> — because the graph and the router are the same system.</p>
+  </div>
+</section>
+
+<section class="cost" id="cost">
+  <div class="container">
+    <div class="eyebrow reveal">Cost</div>
+    <h2 class="sec reveal">Reliability that pays for itself.</h2>
+    <p class="sec-lede reveal">Most queries don't need a frontier model. Flux routes each step to the cheapest model that holds accuracy — and applies the same judgment when it retries a failed one.</p>
+    <div class="meter-wrap reveal">
+      <div class="meter-row m-base"><div class="lab">direct-to-frontier</div><div class="meter-track"><div class="meter-fill"></div></div><div class="val">1.00×</div></div>
+      <div class="meter-row m-flux"><div class="lab">with flux</div><div class="meter-track"><div class="meter-fill"></div></div><div class="val">0.36×</div></div>
+      <p class="method-note">Demo workload, mixed difficulty · reproducible with <code>pip install fluxcompute</code> and your own keys</p>
+    </div>
   </div>
 </section>
 
