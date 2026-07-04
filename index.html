@@ -1,807 +1,112 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>FluxCompute — The compiler for agentic systems</title>
+<title>FluxCompute — The reliability layer for AI agents</title>
+<meta name="description" content="FluxCompute records every agent step into a live execution graph. When a step fails, Flux resumes from the break — on the cheapest model that can finish the job."/>
+<link rel="icon" href="logo.svg" type="image/svg+xml"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="tokens.css"/>
 <style>
-  body { padding: 0; }
   a { color: inherit; text-decoration: none; }
+  img, svg { max-width: 100%; }
 
-  /* Nav */
+  .container { max-width: 1160px; margin: 0 auto; padding: 0 var(--s-5); }
+  @media (min-width: 881px) { .container { padding: 0 var(--s-6); } }
+
+  /* section rhythm */
+  section { padding: var(--s-9) 0; position: relative; }
+  .eyebrow {
+    display: flex; align-items: center; gap: var(--s-2);
+    font: 500 10px/1 var(--font-mono); letter-spacing: var(--tracking-mono);
+    color: var(--accent); text-transform: uppercase; margin-bottom: var(--s-4);
+  }
+  .eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--accent); opacity: .6; }
+  h2.sec {
+    margin: 0 0 var(--s-3);
+    font: 650 var(--text-2xl)/1.15 var(--font-sans); letter-spacing: var(--tracking-tight);
+  }
+  p.sec-lede { margin: 0 0 var(--s-6); color: var(--fg-1); line-height: var(--leading-body); max-width: 560px; }
+
+  /* buttons */
+  .btn { display: inline-flex; align-items: center; gap: var(--s-2); border-radius: var(--r-2);
+         font-size: var(--text-sm); font-weight: 650; padding: 11px 18px; transition: transform .15s, box-shadow .15s; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-flux { color: #0a0b0e; background: var(--accent-grad); box-shadow: 0 0 24px var(--accent-dim); }
+  .btn-ghost { color: var(--fg-1); border: 1px solid var(--line-2); }
+  .btn-ghost:hover { color: var(--fg-0); border-color: var(--fg-2); }
+  .btn-mono { font-family: var(--font-mono); font-weight: 500; }
+
+  /* nav */
   nav.top {
     position: sticky; top: 0; z-index: 50;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: var(--s-4) var(--s-6);
-    background: color-mix(in oklch, var(--bg-0) 80%, transparent);
+    display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+    padding: var(--s-3) var(--s-5);
+    background: color-mix(in srgb, var(--bg-0) 78%, transparent);
     backdrop-filter: blur(14px);
     border-bottom: 1px solid var(--line-1);
   }
-  nav .left, nav .right, nav .center { display: flex; align-items: center; gap: var(--s-5); }
-  nav .center a { font-size: var(--text-sm); color: var(--fg-1); }
-  nav .center a:hover { color: var(--fg-0); }
-  nav .lockup { display: flex; align-items: center; gap: var(--s-3); }
-  nav .lockup .name { font: 600 var(--text-md)/1 var(--font-sans); letter-spacing: var(--tracking-tight); }
-  nav .lockup .name span { opacity: .65; font-weight: 500; }
-  @media (max-width: 880px) { nav .center { display: none; } }
+  nav .lockup { display: flex; align-items: center; gap: var(--s-2); min-width: 0; }
+  nav .lockup b { font-size: 14px; font-weight: 650; letter-spacing: var(--tracking-tight); white-space: nowrap; }
+  nav .links { display: flex; gap: var(--s-5); font-size: var(--text-sm); color: var(--fg-1); }
+  nav .links a:hover { color: var(--fg-0); }
+  nav .btn { padding: 8px 14px; flex-shrink: 0; }
+  @media (max-width: 880px) { nav .links { display: none; } }
 
-  /* Container */
-  .container { max-width: 1200px; margin: 0 auto; padding: 0 var(--s-6); }
+  /* scroll reveal */
+  .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  .no-motion .reveal { opacity: 1; transform: none; transition: none; }
 
-  /* === Hero === */
-  .hero {
-    position: relative;
-    padding: var(--s-10) 0 var(--s-9);
-    overflow: hidden;
-  }
-  .hero::before {
-    content: ""; position: absolute; inset: 0;
-    background-image: radial-gradient(circle at 1px 1px, var(--grid-dot) 1px, transparent 0);
-    background-size: 28px 28px;
-    mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 30%, transparent 75%);
-    pointer-events: none;
-  }
-  .hero::after {
-    content: ""; position: absolute; left: 50%; top: -200px; transform: translateX(-50%);
-    width: 1100px; height: 1100px;
-    background:
-      radial-gradient(circle at 30% 50%, oklch(78% 0.16 200 / 0.18) 0%, transparent 40%),
-      radial-gradient(circle at 70% 50%, oklch(62% 0.22 295 / 0.18) 0%, transparent 40%);
-    filter: blur(40px);
-    pointer-events: none; z-index: -1;
-  }
-  .hero .inner { position: relative; max-width: 880px; }
-  .hero .eyebrow {
-    display: inline-flex; gap: var(--s-2); align-items: center;
-    margin-bottom: var(--s-5);
-  }
-  .hero h1 {
-    margin: 0 0 var(--s-5);
-    font: 600 var(--text-4xl)/var(--leading-tight) var(--font-sans);
-    letter-spacing: var(--tracking-display);
-  }
-  .hero h1 .em { display: inline-block; }
-  .hero p.lede {
-    margin: 0 0 var(--s-7);
-    font-size: var(--text-md);
-    color: var(--fg-1);
-    line-height: var(--leading-body);
-    max-width: 580px;
-  }
-  .hero .cta { display: flex; gap: var(--s-3); align-items: center; flex-wrap: wrap; }
-  .hero .cta .hint {
-    font-family: var(--font-mono); font-size: var(--text-xs); color: var(--fg-2);
-    margin-left: var(--s-3);
-  }
-  .hero .cta .hint kbd {
-    font-family: var(--font-mono); font-size: 10px;
-    padding: 2px 6px;
-    border: 1px solid var(--line-2); border-radius: var(--r-1);
-    background: var(--bg-2); color: var(--fg-1);
-    margin: 0 2px;
-  }
-
-  /* Hero terminal */
-  .terminal-wrap {
-    margin-top: var(--s-8);
-    position: relative;
-  }
-  .terminal {
-    background: var(--bg-1);
-    border: 1px solid var(--line-1);
-    border-radius: var(--r-4);
-    overflow: hidden;
-    box-shadow: var(--shadow-2);
-    position: relative;
-  }
-  .terminal::before {
-    content: ""; position: absolute; inset: -1px;
-    border-radius: var(--r-4);
-    background: var(--flux-gradient);
-    opacity: 0.18;
-    z-index: -1;
-    filter: blur(20px);
-  }
-  .terminal .bar {
-    display: flex; align-items: center; gap: var(--s-3);
-    padding: var(--s-3) var(--s-4);
-    border-bottom: 1px solid var(--line-1);
-    background: var(--bg-1);
-  }
-  .terminal .dots { display: flex; gap: 6px; }
-  .terminal .dots span { width: 10px; height: 10px; border-radius: 50%; background: var(--bg-3); }
-  .terminal .title {
-    font-family: var(--font-mono); font-size: var(--text-xs);
-    color: var(--fg-2); letter-spacing: var(--tracking-mono);
-  }
-  .terminal pre.code {
-    border: 0; border-radius: 0; margin: 0;
-    background: var(--bg-1);
-    padding: var(--s-5) var(--s-6);
-    font-size: var(--text-base);
-    line-height: 1.7;
-  }
-  .terminal .gutter {
-    display: inline-block; width: 24px;
-    color: var(--fg-3); user-select: none;
-    font-size: 11px;
-  }
-  .terminal .ok-line {
-    display: flex; gap: var(--s-3); align-items: center;
-    padding: var(--s-3) var(--s-6);
-    border-top: 1px solid var(--line-1);
-    background: oklch(72% 0.13 155 / 0.05);
-    font-family: var(--font-mono); font-size: var(--text-xs);
-    color: var(--fg-1);
-  }
-  .terminal .ok-line .ok { color: var(--status-ok); }
-  .terminal .ok-line .url { color: var(--flux-cyan); }
-
-  /* logo strip */
-  .strip {
-    margin-top: var(--s-9); padding-top: var(--s-6);
-    border-top: 1px solid var(--line-1);
-    display: flex; flex-wrap: wrap; gap: var(--s-7) var(--s-9);
-    align-items: center; justify-content: space-between;
-  }
-  .strip .lbl { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--fg-2); letter-spacing: var(--tracking-caps); text-transform: uppercase; }
-  .strip .marks { display: flex; gap: var(--s-7); flex-wrap: wrap; align-items: center; color: var(--fg-2); }
-  .strip .marks span { font: 500 var(--text-md)/1 var(--font-sans); letter-spacing: -0.02em; opacity: 0.7; }
-
-  /* === Section common === */
-  section.s {
-    padding: var(--s-10) 0;
-    border-top: 1px solid var(--line-1);
-  }
-  .s-head { display: grid; grid-template-columns: 1fr 1.4fr; gap: var(--s-7); margin-bottom: var(--s-8); }
-  .s-head .num { font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--fg-2); margin-bottom: var(--s-2); }
-  .s-head h2 { margin: 0; font: 600 var(--text-3xl)/var(--leading-tight) var(--font-sans); letter-spacing: var(--tracking-display); }
-  .s-head p { margin: var(--s-3) 0 0; font-size: var(--text-md); color: var(--fg-1); max-width: 560px; }
-  @media (max-width: 880px) { .s-head { grid-template-columns: 1fr; } }
-
-  /* === Features === */
-  .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); }
-  .feat {
-    background: var(--bg-1);
-    border: 1px solid var(--line-1);
-    border-radius: var(--r-4);
-    padding: var(--s-6);
-    display: flex; flex-direction: column; gap: var(--s-5);
-    min-height: 280px;
-    position: relative; overflow: hidden;
-  }
-  .feat .glyph {
-    width: 36px; height: 36px;
-    border-radius: var(--r-2);
-    background: var(--bg-2); border: 1px solid var(--line-2);
-    display: flex; align-items: center; justify-content: center;
-    color: var(--flux-cyan);
-  }
-  .feat h3 { margin: 0; font: 600 var(--text-md)/1.3 var(--font-sans); letter-spacing: var(--tracking-tight); }
-  .feat p { margin: 0; font-size: var(--text-sm); color: var(--fg-1); line-height: 1.65; }
-  .feat .stat {
-    margin-top: auto;
-    padding-top: var(--s-4);
-    border-top: 1px solid var(--line-1);
-    display: flex; justify-content: space-between; align-items: baseline;
-    flex-wrap: wrap; gap: var(--s-2);
-  }
-  .feat .stat .k { font-family: var(--font-mono); font-size: 10px; color: var(--fg-2); letter-spacing: var(--tracking-caps); text-transform: uppercase; }
-  .feat .stat .v { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--fg-0); }
-  .feat .stat .v .unit { color: var(--fg-2); font-size: 11px; margin-left: 2px; }
-  @media (max-width: 880px) { .features { grid-template-columns: 1fr; } }
-
-  /* === Latency / showcase === */
-  .showcase {
-    display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-5);
-  }
-  .showcase .panel {
-    background: var(--bg-1); border: 1px solid var(--line-1);
-    border-radius: var(--r-4); padding: var(--s-6);
-  }
-  .panel-h {
-    display: flex; justify-content: space-between; align-items: baseline;
-    margin-bottom: var(--s-5);
-  }
-  .panel-h h3 { margin: 0; font: 600 var(--text-md)/1.2 var(--font-sans); }
-  .panel-h .meta { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--fg-2); }
-
-  /* Latency comparison bars */
-  .bars { display: grid; gap: var(--s-3); }
-  .bar-row { display: grid; grid-template-columns: 100px 1fr 80px; gap: var(--s-3); align-items: center; }
-  .bar-row .name { font-size: var(--text-sm); color: var(--fg-1); }
-  .bar-row .name.us { color: var(--fg-0); font-weight: 500; }
-  .bar-row .track {
-    height: 28px; background: var(--bg-2); border-radius: var(--r-2);
-    border: 1px solid var(--line-1); position: relative; overflow: hidden;
-  }
-  .bar-row .fill {
-    position: absolute; inset: 0 auto 0 0;
-    background: var(--bg-3);
-    border-radius: var(--r-2);
-  }
-  .bar-row.us .fill { background: var(--flux-gradient); }
-  .bar-row .val { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--fg-1); text-align: right; }
-  .bar-row.us .val { color: var(--fg-0); }
-
-  /* Live feed */
-  .feed { display: grid; gap: var(--s-2); font-family: var(--font-mono); font-size: var(--text-xs); }
-  .feed-row {
-    display: grid; grid-template-columns: 60px 70px 1fr auto; gap: var(--s-3);
-    padding: var(--s-2) var(--s-3);
-    border: 1px solid var(--line-1); border-radius: var(--r-2);
-    background: var(--bg-2);
-    align-items: center;
-  }
-  .feed-row .t { color: var(--fg-2); }
-  .feed-row .ms { color: var(--fg-0); }
-  .feed-row .ep { color: var(--flux-cyan); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .feed-row .st { font-size: 10px; }
-  @media (max-width: 880px) { .showcase { grid-template-columns: 1fr; } }
-
-  /* === Pricing === */
-  .pricing { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); }
-  .price {
-    background: var(--bg-1); border: 1px solid var(--line-1);
-    border-radius: var(--r-4); padding: var(--s-6);
-    display: flex; flex-direction: column; gap: var(--s-4);
-    position: relative;
-  }
-  .price.featured {
-    border-color: transparent;
-    background:
-      linear-gradient(var(--bg-1), var(--bg-1)) padding-box,
-      var(--flux-gradient) border-box;
-    border: 1px solid transparent;
-  }
-  .price .tier { font-family: var(--font-mono); font-size: var(--text-xs); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--fg-2); }
-  .price.featured .tier { color: var(--flux-cyan); }
-  .price h3 { margin: 0; font: 600 var(--text-xl)/1.2 var(--font-sans); letter-spacing: var(--tracking-tight); }
-  .price .amt { display: flex; align-items: baseline; gap: var(--s-2); }
-  .price .amt .num { font: 600 var(--text-2xl)/1 var(--font-sans); letter-spacing: var(--tracking-display); }
-  .price .amt .unit { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--fg-2); }
-  .price ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-3); flex: 1; }
-  .price ul li {
-    display: grid; grid-template-columns: 16px 1fr; gap: var(--s-3);
-    font-size: var(--text-sm); color: var(--fg-1);
-  }
-  .price ul li svg { color: var(--flux-cyan); margin-top: 4px; }
-  .price .btn { width: 100%; justify-content: center; }
-  @media (max-width: 880px) { .pricing { grid-template-columns: 1fr; } }
-
-  /* === CTA === */
-  .cta-final {
-    margin: var(--s-10) 0;
-    padding: var(--s-9) var(--s-7);
-    border-radius: var(--r-4);
-    border: 1px solid var(--line-1);
-    background:
-      linear-gradient(var(--bg-1), var(--bg-1)) padding-box,
-      var(--flux-gradient) border-box;
-    border: 1px solid transparent;
-    text-align: center;
-    position: relative; overflow: hidden;
-  }
-  .cta-final::before {
-    content: ""; position: absolute; inset: 0;
-    background-image: radial-gradient(circle at 1px 1px, var(--grid-dot) 1px, transparent 0);
-    background-size: 28px 28px;
-    mask-image: radial-gradient(ellipse 60% 80% at 50% 50%, black 0%, transparent 70%);
-  }
-  .cta-final h2 {
-    position: relative;
-    margin: 0 0 var(--s-3);
-    font: 600 var(--text-2xl)/var(--leading-tight) var(--font-sans);
-    letter-spacing: var(--tracking-display);
-  }
-  .cta-final p { position: relative; margin: 0 0 var(--s-6); color: var(--fg-1); }
-  .cta-final .row { position: relative; display: inline-flex; gap: var(--s-3); }
-
-  /* Footer */
-  footer {
-    border-top: 1px solid var(--line-1);
-    padding: var(--s-7) 0 var(--s-6);
-    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: var(--s-7);
-  }
-  footer h4 { font: 500 var(--text-xs)/1 var(--font-sans); letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--fg-2); margin: 0 0 var(--s-4); }
-  footer ul { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--s-3); }
-  footer ul a { font-size: var(--text-sm); color: var(--fg-1); }
-  footer ul a:hover { color: var(--fg-0); }
-  footer .meta { color: var(--fg-2); font-size: var(--text-sm); max-width: 280px; line-height: 1.5; margin-top: var(--s-4); }
-  footer .copy {
-    grid-column: 1 / -1; display: flex; justify-content: space-between;
-    border-top: 1px solid var(--line-1); padding-top: var(--s-5); margin-top: var(--s-5);
-    font-family: var(--font-mono); font-size: var(--text-xs); color: var(--fg-2);
-  }
-  @media (max-width: 880px) { footer { grid-template-columns: 1fr 1fr; } }
-
-  /* === Team === */
-  .team-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-5); }
-  .team-card {
-    background: var(--bg-1); border: 1px solid var(--line-1);
-    border-radius: var(--r-4); padding: var(--s-6);
-    display: flex; flex-direction: column; gap: var(--s-4);
-  }
-  .team-avatar {
-    width: 48px; height: 48px; border-radius: 50%;
-    background: var(--flux-gradient);
-    display: flex; align-items: center; justify-content: center;
-    font: 600 var(--text-md)/1 var(--font-sans);
-    color: #fff; flex-shrink: 0;
-  }
-  .team-name { margin: 0; font: 600 var(--text-md)/1.2 var(--font-sans); letter-spacing: var(--tracking-tight); }
-  .team-role { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--flux-cyan); letter-spacing: var(--tracking-caps); text-transform: uppercase; margin-top: var(--s-1); }
-  .team-bio { margin: 0; font-size: var(--text-sm); color: var(--fg-1); line-height: 1.6; }
-  .team-contact { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--fg-2); margin-top: auto; }
-  .team-contact a { color: var(--flux-cyan); }
-  @media (max-width: 880px) { .team-grid { grid-template-columns: 1fr; } }
+  footer { border-top: 1px solid var(--line-1); padding: var(--s-7) 0; color: var(--fg-2); font-size: var(--text-sm); }
 </style>
 </head>
 <body>
 
-<!-- Nav -->
 <nav class="top">
-  <div class="left">
-    <a class="lockup" href="#">
-      <svg width="32" height="24" viewBox="0 0 36 28" aria-hidden="true">
-        <defs>
-          <linearGradient id="nav-g" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#5DD8E8"/><stop offset="100%" stop-color="#7C5CFF"/>
-          </linearGradient>
-        </defs>
-        <path d="M 4 22 C 10 22, 12 4, 18 4 C 24 4, 26 22, 32 22" fill="none" stroke="url(#nav-g)" stroke-width="3" stroke-linecap="round"/>
-        <circle cx="4" cy="22" r="2.5" fill="#5DD8E8"/>
-        <circle cx="18" cy="4" r="2.5" fill="#9670FF"/>
-        <circle cx="32" cy="22" r="2.5" fill="#7C5CFF"/>
-      </svg>
-      <div class="name">Flux<span>Compute</span></div>
-    </a>
-  </div>
-  <div class="center">
-    <a href="#">How it works</a>
+  <a class="lockup" href="#top">
+    <svg width="30" height="24" viewBox="0 0 36 30" aria-hidden="true">
+      <defs>
+        <linearGradient id="nav-flux" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#2fe6a8"/><stop offset="100%" stop-color="#aef7dc"/>
+        </linearGradient>
+      </defs>
+      <path d="M 3 25 C 9 25, 11 5, 17 5 C 23 5, 25 25, 31 25" fill="none" stroke="url(#nav-flux)" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="3" cy="25" r="2.5" fill="#2fe6a8"/>
+      <circle cx="17" cy="5" r="2.5" fill="url(#nav-flux)"/>
+      <circle cx="31" cy="25" r="2.5" fill="#aef7dc"/>
+    </svg>
+    <b>FluxCompute</b>
+  </a>
+  <div class="links">
+    <a href="#how">How it works</a>
+    <a href="#proof">Proof</a>
+    <a href="#cost">Cost</a>
     <a href="#team">Team</a>
-    <a href="#">Pricing</a>
-    <a href="#">Docs</a>
   </div>
-  <div class="right">
-    <a href="mailto:ip259@cornell.edu" style="font-size: var(--text-sm); color: var(--fg-1);">ip259@cornell.edu</a>
-    <a href="mailto:ip259@cornell.edu" class="btn btn-flux btn-sm">Book a demo →</a>
-  </div>
+  <a class="btn btn-flux" href="mailto:ip259@cornell.edu?subject=FluxCompute%20demo">Book a demo</a>
 </nav>
 
-<!-- Hero -->
-<header class="hero">
-  <div class="container inner">
-    <div class="eyebrow">
-      <span class="badge badge-flux badge-dot">Research-backed · 60–70% inference cost reduction</span>
-      <span class="t-mono" style="color: var(--fg-2);">Research · NE Agents Day 2026 · Cornell Tech</span>
-    </div>
-    <h1>
-      The compiler for<br/>
-      <span class="em flux-gradient-text">agentic systems.</span>
-    </h1>
-    <p class="lede">
-      FluxCompute sits between your agent and your models. Every query gets analyzed in
-      ~12ms and routed to the cheapest model that can answer it correctly.
-      Same accuracy, fraction of the cost, no infra change.
-    </p>
-    <div class="cta">
-      <a href="mailto:ip259@cornell.edu" class="btn btn-flux btn-lg">Book a demo →</a>
-      <a href="#team" class="btn btn-ghost btn-lg">Meet the team →</a>
-    </div>
+<main id="top">
+  <!-- sections appended in Tasks 3–10 -->
+</main>
 
-    <!-- terminal -->
-    <div class="terminal-wrap">
-      <div class="terminal">
-        <div class="bar">
-          <div class="dots"><span></span><span></span><span></span></div>
-          <div class="title">~/agent-app · flux compile</div>
-        </div>
-<pre class="code"><span class="gutter">1</span><span class="c">$</span> flux compile --provider anthropic \
-<span class="gutter">2</span>  --traces ./agent-traces.jsonl
-<span class="gutter">3</span>
-<span class="gutter">4</span><span class="c">→</span> analyzing 14d of agent traces   <span class="s">✓</span>  3.2s
-<span class="gutter">5</span><span class="c">→</span> training query classifier       <span class="s">✓</span>  18.4s
-<span class="gutter">6</span><span class="c">→</span> attaching KV cache layer        <span class="s">✓</span>  0.4s
-<span class="gutter">7</span><span class="c">→</span> healthcheck /v1/route           <span class="s">✓</span>  12ms</pre>
-        <div class="ok-line">
-          <span class="ok">●</span>
-          <span>Routing live · baseline $48,200/mo →</span>
-          <span class="url">projected $14,100/mo (−71%)</span>
-          <span style="margin-left:auto; color: var(--fg-2);">total: 22.0s</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- logo strip -->
-    <div class="strip">
-      <div class="lbl">Research &amp; engineering from</div>
-      <div class="marks">
-        <span>Cornell Tech</span>
-        <span>MIT CSAIL</span>
-        <span>Google</span>
-        <span>Veolia</span>
-      </div>
-    </div>
-  </div>
-</header>
-
-<!-- 01 Features -->
-<section class="s">
-  <div class="container">
-    <div class="s-head">
-      <div>
-        <div class="num">01 · How it works</div>
-        <h2>Five layers. Zero infra changes.</h2>
-      </div>
-      <p>You keep your agent and your models. FluxCompute compiles every query down to the model that should actually run it — and caches, monitors, and corrects itself along the way.</p>
-    </div>
-
-    <div class="features">
-      <div class="feat">
-        <div class="glyph">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <ellipse cx="12" cy="5" rx="9" ry="3"/>
-            <path d="M3 5v14a9 3 0 0 0 18 0V5"/>
-            <path d="M3 12a9 3 0 0 0 18 0"/>
-          </svg>
-        </div>
-        <h3>L0 · KV cache persistence</h3>
-        <p>Multi-turn agents recompute attention states on every turn. We persist them by session ID and restore them on the next step. Invisible to your agent code.</p>
-        <div class="stat">
-          <span class="k">Prefill recompute</span>
-          <span class="v">−50<span class="unit">%</span></span>
-        </div>
-      </div>
-
-      <div class="feat">
-        <div class="glyph">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 7h18M3 12h12M3 17h6"/>
-          </svg>
-        </div>
-        <h3>L1 · Query classifier</h3>
-        <p>Real-time difficulty analysis on every incoming query. Easy → Haiku. Medium → Sonnet. Hard → Opus. Re-classifies when execution branches into a tool call or reasoning loop.</p>
-        <div class="stat">
-          <span class="k">Routing overhead</span>
-          <span class="v">12<span class="unit">ms</span></span>
-        </div>
-      </div>
-
-      <div class="feat">
-        <div class="glyph">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="16 18 22 12 16 6"/>
-            <polyline points="8 6 2 12 8 18"/>
-          </svg>
-        </div>
-        <h3>L2 · Model executor</h3>
-        <p>Dispatches each query to the chosen model — API tier or local weights. Handles provider-level routing across OpenAI, Anthropic, and local weight deployments.</p>
-        <div class="stat">
-          <span class="k">Providers</span>
-          <span class="v">OpenAI · Anthropic · Local</span>
-        </div>
-      </div>
-
-      <div class="feat">
-        <div class="glyph">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="17 1 21 5 17 9"/>
-            <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
-            <polyline points="7 23 3 19 7 15"/>
-            <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
-          </svg>
-        </div>
-        <h3>Context Handoff</h3>
-        <p>When execution crosses a model boundary mid-loop, FluxCompute serialises full agent state — memory, tool calls, conversation history — and cross-translates it to the target model's format. The loop resumes without restart.</p>
-        <div class="stat">
-          <span class="k">State fidelity</span>
-          <span class="v">lossless</span>
-        </div>
-      </div>
-
-      <div class="feat">
-        <div class="glyph">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 12h4l3-9 4 18 3-9h4"/>
-          </svg>
-        </div>
-        <h3>L3 · Drift monitor</h3>
-        <p>Tracks whether each routing decision was correct. Detects when query distribution shifts — seasonal, customer cohort, new feature — and triggers automatic recompilation monthly.</p>
-        <div class="stat">
-          <span class="k">Accuracy delta vs. baseline</span>
-          <span class="v">&lt;1<span class="unit">%</span></span>
-        </div>
-      </div>
-
-      <div class="feat">
-        <div class="glyph">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="7" height="9"/>
-            <rect x="14" y="3" width="7" height="5"/>
-            <rect x="14" y="12" width="7" height="9"/>
-            <rect x="3" y="16" width="7" height="5"/>
-          </svg>
-        </div>
-        <h3>L4 · Observability</h3>
-        <p>Cost per query, per type, per customer. Latency breakdowns. Routing accuracy. The dashboard your CFO asks for — exposed as Prometheus, OTLP, or our UI.</p>
-        <div class="stat">
-          <span class="k">Telemetry</span>
-          <span class="v">OTLP · Prom · S3</span>
-        </div>
-      </div>
-
-      <div class="feat">
-        <div class="glyph">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2"/>
-            <path d="M7 11V7a5 5 0 0110 0v4"/>
-          </svg>
-        </div>
-        <h3>On-prem compression</h3>
-        <p>For regulated workloads — HIPAA, GDPR, classified, sovereign. Run 80% of queries on compressed models 40–70% smaller, with no measurable accuracy loss on your workload. All data stays local.</p>
-        <div class="stat">
-          <span class="k">Model compression</span>
-          <span class="v">40–70<span class="unit">%</span></span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- 02 Latency / showcase -->
-<section class="s">
-  <div class="container">
-    <div class="s-head">
-      <div>
-        <div class="num">02 · Performance</div>
-        <h2>Numbers, not adjectives.</h2>
-      </div>
-      <p>Measured on real production agent workloads, A6000 Ada hardware, against HumanEval and TriviaQA. Cost normalized to baseline of routing every query to the top-tier model. Lower is better.</p>
-    </div>
-
-    <div class="showcase">
-      <div class="panel">
-        <div class="panel-h">
-          <h3>Inference cost · normalized</h3>
-          <span class="meta">N=2.1M queries · &lt;1% accuracy delta</span>
-        </div>
-        <div class="bars">
-          <div class="bar-row us">
-            <span class="name us">FluxCompute</span>
-            <div class="track"><div class="fill" style="width: 30%;"></div></div>
-            <span class="val">0.30×</span>
-          </div>
-          <div class="bar-row">
-            <span class="name">Single-tier router</span>
-            <div class="track"><div class="fill" style="width: 72%;"></div></div>
-            <span class="val">0.72×</span>
-          </div>
-          <div class="bar-row">
-            <span class="name">Prompt compression</span>
-            <div class="track"><div class="fill" style="width: 84%;"></div></div>
-            <span class="val">0.84×</span>
-          </div>
-          <div class="bar-row">
-            <span class="name">KV cache only</span>
-            <div class="track"><div class="fill" style="width: 88%;"></div></div>
-            <span class="val">0.88×</span>
-          </div>
-          <div class="bar-row">
-            <span class="name">Baseline (top tier)</span>
-            <div class="track"><div class="fill" style="width: 100%;"></div></div>
-            <span class="val">1.00×</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-h">
-          <h3>Live routing feed</h3>
-          <span class="meta" id="now">prod · streaming</span>
-        </div>
-        <div class="feed" id="feed">
-          <div class="feed-row"><span class="t">21:14:08</span><span class="ms">11ms</span><span class="ep">easy → haiku</span><span class="st" style="color: var(--status-ok);">200</span></div>
-          <div class="feed-row"><span class="t">21:14:08</span><span class="ms">14ms</span><span class="ep">medium → sonnet</span><span class="st" style="color: var(--status-ok);">200</span></div>
-          <div class="feed-row"><span class="t">21:14:07</span><span class="ms">9ms</span><span class="ep">easy → haiku</span><span class="st" style="color: var(--status-ok);">200</span></div>
-          <div class="feed-row"><span class="t">21:14:07</span><span class="ms">22ms</span><span class="ep">hard → opus</span><span class="st" style="color: var(--status-ok);">200</span></div>
-          <div class="feed-row"><span class="t">21:14:06</span><span class="ms">17ms</span><span class="ep">medium → sonnet · branch</span><span class="st" style="color: var(--status-warn);">200</span></div>
-          <div class="feed-row"><span class="t">21:14:06</span><span class="ms">10ms</span><span class="ep">easy → haiku</span><span class="st" style="color: var(--status-ok);">200</span></div>
-          <div class="feed-row"><span class="t">21:14:05</span><span class="ms">13ms</span><span class="ep">easy → haiku</span><span class="st" style="color: var(--status-ok);">200</span></div>
-          <div class="feed-row"><span class="t">21:14:05</span><span class="ms">19ms</span><span class="ep">hard → opus</span><span class="st" style="color: var(--status-ok);">200</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- 03 Pricing -->
-<section class="s">
-  <div class="container">
-    <div class="s-head">
-      <div>
-        <div class="num">03 · Pricing</div>
-        <h2>We win when you win.</h2>
-      </div>
-      <p>Outcome-aligned. We bill 20% of the inference spend we eliminate, measured against your own pre-FluxCompute baseline. No savings, no bill.</p>
-    </div>
-
-    <div class="pricing">
-      <div class="price">
-        <div class="tier">Pilot</div>
-        <h3>Pilot</h3>
-        <div class="amt"><span class="num">Free</span><span class="unit">/ 14 days</span></div>
-        <ul>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Drop-in routing for one workload</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Baseline + savings report</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>OpenAI · Anthropic · Google</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>No card. No commit.</span></li>
-        </ul>
-        <a href="mailto:ip259@cornell.edu" class="btn btn-ghost">Book a demo</a>
-      </div>
-
-      <div class="price featured">
-        <div class="tier">Most teams</div>
-        <h3>Growth</h3>
-        <div class="amt"><span class="num">20%</span><span class="unit">of savings</span></div>
-        <ul>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>All five layers, all workloads</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Multi-turn KV cache persistence</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Drift monitor + monthly recompile</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>OTLP + Prometheus export</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Slack support · 4h response</span></li>
-        </ul>
-        <a href="mailto:ip259@cornell.edu" class="btn btn-flux">Book a demo →</a>
-      </div>
-
-      <div class="price">
-        <div class="tier">Regulated</div>
-        <h3>Enterprise</h3>
-        <div class="amt"><span class="num">Talk to us</span></div>
-        <ul>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>On-prem deployment, no API egress</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Model compression (40–70%)</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>HIPAA · GDPR · FedRAMP-ready</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>SAML SSO + SCIM</span></li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Solutions architect</span></li>
-        </ul>
-        <a href="mailto:ip259@cornell.edu" class="btn btn-ghost">Get in touch →</a>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- 04 Team -->
-<section class="s" id="team">
-  <div class="container">
-    <div class="s-head">
-      <div>
-        <div class="num">04 · Team</div>
-        <h2>Built by researchers who've worked on the problem.</h2>
-      </div>
-      <p>FluxCompute is built by two Cornell Tech researchers with hands-on experience in ML hardware, production LLM systems, and inference optimization.</p>
-    </div>
-    <div class="team-grid">
-      <div class="team-card">
-        <div class="team-avatar">I</div>
-        <div>
-          <h3 class="team-name">Ishan Patwardhan</h3>
-          <div class="team-role">Co-founder</div>
-        </div>
-        <p class="team-bio">Researcher at Cornell Tech in Agentic Systems, ML hardware, and hardware-software co-design. Inference research at MIT CSAIL: hierarchical MoE, DAG-based token routing. SWE at Google: SVD-based context engineering and evaluation frameworks for Gemini. Prior: HPC systems, math libraries, and container platforms at Hewlett Packard Enterprise.</p>
-        <div class="team-contact"><a href="mailto:ip259@cornell.edu">ip259@cornell.edu</a></div>
-      </div>
-      <div class="team-card">
-        <div class="team-avatar">N</div>
-        <div>
-          <h3 class="team-name">Niki Karanikola</h3>
-          <div class="team-role">Co-founder</div>
-        </div>
-        <p class="team-bio">Two years shipping production LLM inference, dense retrieval, and RAG pipelines at Veolia — re-architected enterprise knowledge access from weeks to minutes, 6× faster reporting cadence, +20% NDCG. Researcher at Cornell Tech's Social Technologies Lab.</p>
-        <div class="team-contact"><a href="mailto:nk699@cornell.edu">nk699@cornell.edu</a></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- CTA -->
-<div class="container">
-  <div class="cta-final">
-    <h2>See your inference bill drop in two weeks.</h2>
-    <p>Free 14-day pilot on your own traffic. We bill nothing until we prove the savings.</p>
-    <div class="row">
-      <a href="mailto:ip259@cornell.edu" class="btn btn-flux btn-lg">Book a demo →</a>
-      <a href="mailto:ip259@cornell.edu" class="btn btn-ghost btn-lg">Get in touch →</a>
-    </div>
-  </div>
-</div>
-
-<!-- Footer -->
-<footer class="container">
-  <div>
-    <div class="lockup" style="display:flex; gap: var(--s-3); align-items: center;">
-      <svg width="32" height="24" viewBox="0 0 36 28" aria-hidden="true">
-        <defs><linearGradient id="ft-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5DD8E8"/><stop offset="100%" stop-color="#7C5CFF"/></linearGradient></defs>
-        <path d="M 4 22 C 10 22, 12 4, 18 4 C 24 4, 26 22, 32 22" fill="none" stroke="url(#ft-g)" stroke-width="3" stroke-linecap="round"/>
-        <circle cx="4" cy="22" r="2.5" fill="#5DD8E8"/>
-        <circle cx="18" cy="4" r="2.5" fill="#9670FF"/>
-        <circle cx="32" cy="22" r="2.5" fill="#7C5CFF"/>
-      </svg>
-      <div style="font: 600 var(--text-md)/1 var(--font-sans); letter-spacing: var(--tracking-tight);">Flux<span style="opacity:.65; font-weight:500;">Compute</span></div>
-    </div>
-    <p class="meta">The compiler for agentic systems. Built by Cornell Tech &amp; MIT researchers. New York · San Francisco.</p>
-  </div>
-  <div>
-    <h4>Product</h4>
-    <ul>
-      <li><a href="#">How it works</a></li>
-      <li><a href="#">Pricing</a></li>
-      <li><a href="#">On-prem</a></li>
-      <li><a href="#">Status</a></li>
-    </ul>
-  </div>
-  <div>
-    <h4>Developers</h4>
-    <ul>
-      <li><a href="#">Documentation</a></li>
-      <li><a href="#">API reference</a></li>
-      <li><a href="#">CLI</a></li>
-      <li><a href="#">Examples</a></li>
-    </ul>
-  </div>
-  <div>
-    <h4>Company</h4>
-    <ul>
-      <li><a href="#team">Team</a></li>
-      <li><a href="#">Customers</a></li>
-      <li><a href="#">Careers</a></li>
-      <li><a href="mailto:ip259@cornell.edu">Contact</a></li>
-    </ul>
-  </div>
-  <div class="copy">
-    <span>© 2026 FluxCompute, Inc.</span>
-  </div>
+<footer>
+  <div class="container">© 2026 FluxCompute</div>
 </footer>
 
 <script>
-  // Live feed: prepend a row every ~2s, drop tail
-  const feed = document.getElementById('feed');
-  // Weighted: most queries are easy/medium, few are hard, occasional branch
-  const routes = [
-    { label: 'easy → haiku',     weight: 55, ms: [8, 14] },
-    { label: 'medium → sonnet',  weight: 30, ms: [12, 20] },
-    { label: 'hard → opus',      weight: 12, ms: [16, 26] },
-    { label: 'medium → sonnet · branch', weight: 3, ms: [15, 24], warn: true },
-  ];
-  const totalW = routes.reduce((s, r) => s + r.weight, 0);
-  const pickRoute = () => {
-    let r = Math.random() * totalW;
-    for (const route of routes) { r -= route.weight; if (r <= 0) return route; }
-    return routes[0];
-  };
-  const pad = n => String(n).padStart(2,'0');
-  setInterval(() => {
-    const d = new Date();
-    const t = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-    const route = pickRoute();
-    const ms = (route.ms[0] + Math.floor(Math.random() * (route.ms[1] - route.ms[0]))) + 'ms';
-    const row = document.createElement('div');
-    row.className = 'feed-row';
-    row.style.opacity = '0';
-    row.style.transform = 'translateY(-4px)';
-    row.style.transition = 'opacity 200ms ease, transform 200ms ease';
-    row.innerHTML = `
-      <span class="t">${t}</span>
-      <span class="ms">${ms}</span>
-      <span class="ep">${route.label}</span>
-      <span class="st" style="color: var(--${route.warn ? 'status-warn' : 'status-ok'});">200</span>
-    `;
-    feed.prepend(row);
-    requestAnimationFrame(() => { row.style.opacity = '1'; row.style.transform = 'translateY(0)'; });
-    if (feed.children.length > 8) feed.lastElementChild.remove();
-  }, 2200);
-</script>
+  const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (RM) document.documentElement.classList.add('no-motion');
 
+  // scroll reveal
+  const io = new IntersectionObserver((es) => {
+    es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: .15 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
 </body>
 </html>
