@@ -209,6 +209,23 @@
   .rollup .r .l { font-size: 10px; color: var(--fg-2); text-transform: uppercase; letter-spacing: .05em; margin-top: 4px; }
   .dash-caption { margin-top: var(--s-4); font: 11px var(--font-mono); color: var(--fg-2); }
   .dash-caption code { color: var(--accent); }
+  .dash .bar .live { margin-left: auto; font: 9px var(--font-mono); color: var(--accent); letter-spacing: .1em; display: flex; align-items: center; gap: 5px; }
+  .dash .bar .live::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); animation: blink 1.6s infinite; }
+  .dag-pulse { fill: var(--accent-hi); }
+  #dagFail { animation: dagfail 4s ease-in-out infinite; }
+  @keyframes dagfail { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+  #dagRecover { stroke-dasharray: 300; animation: dagdraw 7s cubic-bezier(.4,0,.2,1) infinite; }
+  @keyframes dagdraw {
+    0% { stroke-dashoffset: 300; opacity: 0; }
+    12% { opacity: 1; }
+    40% { stroke-dashoffset: 0; opacity: 1; }
+    88% { stroke-dashoffset: 0; opacity: 1; }
+    100% { stroke-dashoffset: 0; opacity: 0; }
+  }
+  .ftable tr td { transition: background .4s; }
+  .ftable tr.hot td { background: rgba(47,230,168,.06); }
+  .no-motion #dagFail, .no-motion .dash .bar .live::before { animation: none; }
+  .no-motion #dagRecover { animation: none; stroke-dashoffset: 0; }
   @media (max-width: 880px) {
     .dash-body { grid-template-columns: 1fr; }
     .dash-left { border-right: 0; border-bottom: 1px solid var(--line-1); }
@@ -502,24 +519,36 @@
     <h2 class="sec reveal">Every task, mapped. Every failure, named.</h2>
     <p class="sec-lede reveal">The Task Graphs view — the DAG of a real run, colored by status, with the failure classified and the recovery costed.</p>
     <div class="dash reveal">
-      <div class="bar"><i></i><i></i><i></i><span>flux dashboard — task graphs</span></div>
+      <div class="bar"><i></i><i></i><i></i><span>flux dashboard — task graphs</span><span class="live">LIVE</span></div>
       <div class="dash-body">
         <div class="dash-left">
           <h4>task: market-research · run #147</h4>
           <svg viewBox="0 0 520 240" aria-label="Execution DAG for task market-research">
             <g stroke="#2fe6a8" stroke-opacity=".3" fill="none">
-              <path d="M40 120 Q 90 70 150 80"/><path d="M150 80 Q 220 60 280 90"/>
-              <path d="M40 120 Q 100 170 170 165"/><path d="M170 165 Q 235 175 280 90"/>
-              <path d="M280 90 Q 350 95 400 130"/>
+              <path id="pe1" d="M40 120 Q 90 70 150 80"/><path id="pe2" d="M150 80 Q 220 60 280 90"/>
+              <path id="pe3" d="M40 120 Q 100 170 170 165"/><path d="M170 165 Q 235 175 280 90"/>
+              <path id="pe4" d="M280 90 Q 350 95 400 130"/>
             </g>
             <path d="M170 165 Q 230 215 300 205" stroke="#ff4d5e" stroke-dasharray="4 3" fill="none"/>
-            <path d="M170 165 Q 300 190 400 130" stroke="#aef7dc" fill="none"/>
+            <path id="dagRecover" d="M170 165 Q 300 190 400 130" stroke="#aef7dc" fill="none"/>
             <g fill="#2fe6a8">
               <circle cx="40" cy="120" r="6"/><circle cx="150" cy="80" r="6"/>
               <circle cx="170" cy="165" r="6"/><circle cx="280" cy="90" r="6"/>
             </g>
-            <circle cx="300" cy="205" r="6" fill="#ff4d5e"/>
+            <circle id="dagFail" cx="300" cy="205" r="6" fill="#ff4d5e"/>
             <circle cx="400" cy="130" r="6" fill="#aef7dc"/>
+            <circle class="dag-pulse" r="2.2">
+              <animateMotion dur="3.2s" repeatCount="indefinite"><mpath href="#pe1"/></animateMotion>
+            </circle>
+            <circle class="dag-pulse" r="2.2">
+              <animateMotion dur="4s" begin="-1.5s" repeatCount="indefinite"><mpath href="#pe2"/></animateMotion>
+            </circle>
+            <circle class="dag-pulse" r="2">
+              <animateMotion dur="4.6s" begin="-.8s" repeatCount="indefinite"><mpath href="#pe3"/></animateMotion>
+            </circle>
+            <circle class="dag-pulse" r="2">
+              <animateMotion dur="3.6s" begin="-2.2s" repeatCount="indefinite"><mpath href="#pe4"/></animateMotion>
+            </circle>
             <g font-family="JetBrains Mono, monospace" font-size="9" fill="#5c6472">
               <text x="28" y="140">ingest</text><text x="138" y="68">plan</text>
               <text x="140" y="185">tool-call</text><text x="268" y="78">synthesize</text>
@@ -527,10 +556,10 @@
             </g>
           </svg>
           <div class="rollup">
-            <div class="r"><div class="n">9/9</div><div class="l">steps complete</div></div>
-            <div class="r"><div class="n">1</div><div class="l">failure recovered</div></div>
-            <div class="r"><div class="n">$0.184</div><div class="l">task cost</div></div>
-            <div class="r"><div class="n">$0.42</div><div class="l">saved vs replay</div></div>
+            <div class="r"><div class="n" data-count="9" data-suffix="/9">9/9</div><div class="l">steps complete</div></div>
+            <div class="r"><div class="n" data-count="1">1</div><div class="l">failure recovered</div></div>
+            <div class="r"><div class="n" data-count="0.184" data-prefix="$" data-dec="3">$0.184</div><div class="l">task cost</div></div>
+            <div class="r"><div class="n" data-count="0.42" data-prefix="$" data-dec="2">$0.42</div><div class="l">saved vs replay</div></div>
           </div>
         </div>
         <div class="dash-right">
@@ -681,6 +710,40 @@ response = <span class="kw">await</span> client.resume(t.task_id)
     es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
   }, { threshold: .15 });
   document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  /* dashboard: count-up stats on reveal */
+  function countUp(el) {
+    const target = parseFloat(el.dataset.count);
+    const dec = parseInt(el.dataset.dec || '0', 10);
+    const pre = el.dataset.prefix || '', suf = el.dataset.suffix || '';
+    const t0 = performance.now(), dur = 1200;
+    (function step(t) {
+      const p = Math.min((t - t0) / dur, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = pre + (target * eased).toFixed(dec) + suf;
+      if (p < 1) requestAnimationFrame(step);
+    })(t0);
+  }
+  const dash = document.querySelector('.dash');
+  if (dash && !RM) {
+    const dio = new IntersectionObserver((es) => {
+      es.forEach(e => {
+        if (e.isIntersecting) {
+          dash.querySelectorAll('[data-count]').forEach(countUp);
+          dio.unobserve(dash);
+        }
+      });
+    }, { threshold: .3 });
+    dio.observe(dash);
+    /* cycling row highlight on the failure table */
+    const rows = dash.querySelectorAll('.ftable tr:not(:first-child)');
+    let ri = 0;
+    setInterval(() => {
+      rows.forEach(r => r.classList.remove('hot'));
+      rows[ri % rows.length].classList.add('hot');
+      ri++;
+    }, 2400);
+  }
 </script>
 </body>
 </html>
