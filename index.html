@@ -247,6 +247,28 @@
   .no-motion .m-flux .meter-fill { width: 36%; transition: none; }
   .method-note { margin-top: var(--s-4); font: 11px var(--font-mono); color: var(--fg-2); }
   .method-note code { color: var(--accent); }
+
+  /* === Team === */
+  .team { border-top: 1px solid var(--line-1); }
+  .team-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); margin-top: var(--s-6); }
+  .tcard { background: var(--bg-1); border: 1px solid var(--line-1); border-radius: var(--r-3); padding: var(--s-5); min-width: 0; }
+  .tcard .av { width: 44px; height: 44px; border-radius: 50%; background: var(--accent-grad);
+               display: flex; align-items: center; justify-content: center; color: #0a0b0e; font-weight: 700; }
+  .tcard h3 { margin: var(--s-3) 0 2px; font: 650 var(--text-md)/1.2 var(--font-sans); }
+  .tcard .role { font: 500 11px var(--font-mono); color: var(--accent); }
+  .tcard p { color: var(--fg-1); font-size: var(--text-sm); line-height: var(--leading-body); margin: var(--s-3) 0 0; }
+  .tcard .mail { display: inline-block; margin-top: var(--s-3); font: 11px var(--font-mono); color: var(--fg-2); overflow-wrap: anywhere; }
+  .tcard .mail:hover { color: var(--accent); }
+  .bg-line { margin-top: var(--s-5); font-size: var(--text-sm); color: var(--fg-2); }
+  .bg-line b { color: var(--fg-1); font-weight: 500; }
+  .partner {
+    margin-top: var(--s-7); border: 1px solid var(--line-2); border-radius: var(--r-4);
+    padding: var(--s-6); background: linear-gradient(180deg, var(--bg-1), var(--bg-0));
+    display: flex; justify-content: space-between; align-items: center; gap: var(--s-5); flex-wrap: wrap;
+  }
+  .partner h3 { margin: 0 0 var(--s-2); font: 650 var(--text-xl)/1.2 var(--font-sans); letter-spacing: var(--tracking-tight); }
+  .partner p { margin: 0; color: var(--fg-1); font-size: var(--text-sm); max-width: 480px; line-height: var(--leading-body); }
+  @media (max-width: 880px) { .team-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -546,6 +568,37 @@ response = <span class="kw">await</span> client.resume(t.task_id)
       <div class="meter-row m-base"><div class="lab">direct-to-frontier</div><div class="meter-track"><div class="meter-fill"></div></div><div class="val">1.00×</div></div>
       <div class="meter-row m-flux"><div class="lab">with flux</div><div class="meter-track"><div class="meter-fill"></div></div><div class="val">0.36×</div></div>
       <p class="method-note">Demo workload, mixed difficulty · reproducible with <code>pip install fluxcompute</code> and your own keys</p>
+    </div>
+  </div>
+</section>
+
+<section class="team" id="team">
+  <div class="container">
+    <div class="eyebrow reveal">Team</div>
+    <h2 class="sec reveal">Built by the people who run it.</h2>
+    <div class="team-grid">
+      <div class="tcard reveal">
+        <div class="av">I</div>
+        <h3>Ishan Patwardhan</h3>
+        <div class="role">co-founder</div>
+        <p>Built FluxCompute's routing and execution-graph layer. Previously: inference research at MIT CSAIL (hierarchical MoE, DAG-based token routing), SWE at Google on Gemini evaluation and context engineering, HPC systems at HPE. Researcher at Cornell Tech in agentic systems and hardware-software co-design.</p>
+        <a class="mail" href="mailto:ip259@cornell.edu">ip259@cornell.edu</a>
+      </div>
+      <div class="tcard reveal">
+        <div class="av">N</div>
+        <h3>Niki Karanikola</h3>
+        <div class="role">co-founder</div>
+        <p>Two years shipping production LLM inference, dense retrieval, and RAG pipelines at Veolia — re-architected enterprise knowledge access from weeks to minutes, 6× faster reporting cadence, +20% NDCG. Researcher at Cornell Tech's Social Technologies Lab.</p>
+        <a class="mail" href="mailto:nk699@cornell.edu">nk699@cornell.edu</a>
+      </div>
+    </div>
+    <p class="bg-line reveal">Our team's background: <b>Cornell Tech · MIT CSAIL · Google · Veolia · HPE</b></p>
+    <div class="partner reveal">
+      <div>
+        <h3>We're onboarding early design partners.</h3>
+        <p>Running agents in production — or trying to? We'll wire Flux under your stack with you, and you get direct access to the people who built it.</p>
+      </div>
+      <a class="btn btn-flux" href="mailto:ip259@cornell.edu?subject=FluxCompute%20design%20partner">Become a design partner</a>
     </div>
   </div>
 </section>
