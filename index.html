@@ -62,6 +62,99 @@
   .no-motion .reveal { opacity: 1; transform: none; transition: none; }
 
   footer { border-top: 1px solid var(--line-1); padding: var(--s-7) 0; color: var(--fg-2); font-size: var(--text-sm); }
+
+  /* === Hero === */
+  .hero { position: relative; overflow: hidden; padding: var(--s-7) 0 var(--s-8);
+          background: radial-gradient(ellipse 100% 80% at 72% 30%, #0d1119 0%, var(--bg-0) 60%); }
+  .hero::after { /* grain */
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .35;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .04 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .hero .grid-bg {
+    position: absolute; inset: 0; pointer-events: none; opacity: .5;
+    background-image: linear-gradient(var(--line-1) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--line-1) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 90% 80% at 65% 40%, black 20%, transparent 78%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 80% at 65% 40%, black 20%, transparent 78%);
+  }
+  .hero-body { position: relative; z-index: 2; display: grid; grid-template-columns: 44% 56%; align-items: start; }
+  .hero .copy { padding-top: var(--s-6); min-width: 0; }
+  .hero h1 { margin: 0; font: 650 var(--text-4xl)/var(--leading-tight) var(--font-sans); letter-spacing: var(--tracking-display); }
+  .hero h1 .dim { color: var(--fg-2); }
+  .hero h1 .lit { background: var(--accent-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero .lede { color: var(--fg-1); line-height: var(--leading-body); margin: var(--s-4) 0 0; max-width: 400px; }
+  .hero .lede b { color: var(--ok-text); font-weight: 550; }
+  .hero .ctas { display: flex; gap: var(--s-3); margin-top: var(--s-6); flex-wrap: wrap; }
+  .stat-strip { display: flex; gap: var(--s-6); margin-top: var(--s-7); flex-wrap: wrap; }
+  .stat .n { font: 600 17px/1 var(--font-mono); }
+  .stat .l { font-size: 10px; color: var(--fg-2); margin-top: 5px; letter-spacing: .05em; text-transform: uppercase; }
+
+  /* graph stage */
+  .stage { position: relative; min-width: 0; }
+  svg.graph { width: 100%; height: 520px; display: block; }
+  .drift { animation: drift 26s ease-in-out infinite alternate; transform-origin: 310px 260px; }
+  @keyframes drift {
+    0% { transform: translate(0,0) rotate(0deg) scale(1); }
+    50% { transform: translate(-6px,5px) rotate(.4deg) scale(1.012); }
+    100% { transform: translate(5px,-4px) rotate(-.3deg) scale(1); }
+  }
+  .drift-bg { animation: driftbg 34s ease-in-out infinite alternate; }
+  @keyframes driftbg { from { transform: translate(0,0); } to { transform: translate(10px,-8px); } }
+  .halo { animation: breathe 5s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+  .halo.h2 { animation-duration: 6.4s; animation-delay: -2s; }
+  .halo.h3 { animation-duration: 7.2s; animation-delay: -4s; }
+  @keyframes breathe { 0%,100% { transform: scale(1); opacity: .85; } 50% { transform: scale(1.28); opacity: 1; } }
+  .edge { stroke: var(--accent); stroke-opacity: .16; stroke-width: 1.1; fill: none; }
+  .edge.lit { stroke-opacity: .4; }
+  .pulse { fill: var(--accent-hi); }
+  .node-core { fill: var(--accent); }
+  .node-core.bright { fill: var(--accent-hi); }
+  text.tag { font: 8.5px var(--font-mono); fill: var(--fg-2); letter-spacing: .04em; }
+
+  #failNode .node-core { transition: fill .3s; }
+  #failEdge { stroke: var(--fail); stroke-width: 1.1; stroke-dasharray: 4 3; fill: none; opacity: 0; transition: opacity .4s; }
+  #failHalo { opacity: 0; transition: opacity .4s; }
+  #recoverPath { stroke: var(--accent-hi); stroke-width: 1.5; fill: none; stroke-dasharray: 220; stroke-dashoffset: 220; opacity: 0; }
+  .phase-fail #failNode .node-core { fill: var(--fail); }
+  .phase-fail #failHalo, .phase-recover #failHalo { opacity: 1; }
+  .phase-fail #failEdge { opacity: .9; }
+  .phase-recover #failNode .node-core { fill: var(--fail); }
+  .phase-recover #failEdge { opacity: .35; }
+  .phase-recover #recoverPath { opacity: 1; animation: draw 1.6s cubic-bezier(.4,0,.2,1) forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  .phase-healed #failNode .node-core { fill: var(--accent-hi); }
+  .phase-healed #recoverPath { opacity: .8; stroke-dashoffset: 0; }
+
+  /* telemetry */
+  .telemetry {
+    position: absolute; right: var(--s-4); bottom: var(--s-4); z-index: 3; width: 298px; max-width: calc(100% - var(--s-5));
+    background: rgba(8,9,12,.82); backdrop-filter: blur(8px);
+    border: 1px solid var(--line-1); border-radius: var(--r-3); overflow: hidden;
+  }
+  .telemetry .th { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--line-1);
+                   font: 9px var(--font-mono); color: var(--fg-2); letter-spacing: .1em; }
+  .telemetry .live { color: var(--accent); display: flex; align-items: center; gap: 5px; }
+  .telemetry .live::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); animation: blink 1.6s infinite; }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+  .tlog { padding: 9px 12px 11px; font: 9.5px/1.9 var(--font-mono); }
+  .tlog .row { display: flex; gap: 8px; white-space: nowrap; overflow: hidden; }
+  .tlog .t { color: var(--fg-2); } .tlog .ok { color: var(--ok-text); }
+  .tlog .warn { color: var(--fail); } .tlog .acc { color: var(--accent); }
+  .tlog .row.new { animation: slidein .3s ease; }
+  @keyframes slidein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  /* reduced motion: freeze ambient, show healed end-state */
+  .no-motion .drift, .no-motion .drift-bg, .no-motion .halo,
+  .no-motion .telemetry .live::before, .no-motion .tlog .row.new { animation: none; }
+  .no-motion #recoverPath { opacity: .8; stroke-dashoffset: 0; }
+  .no-motion #failNode .node-core { fill: var(--accent-hi); }
+
+  @media (max-width: 880px) {
+    .hero-body { grid-template-columns: 1fr; }
+    svg.graph { height: 380px; }
+    .hero .copy { padding-top: var(--s-4); }
+  }
 </style>
 </head>
 <body>
@@ -91,7 +184,127 @@
 </nav>
 
 <main id="top">
-  <!-- sections appended in Tasks 3–10 -->
+
+<section class="hero">
+  <div class="grid-bg"></div>
+  <div class="container hero-body">
+    <div class="copy">
+      <div class="eyebrow">Execution graphs for AI agents</div>
+      <h1>Agents fail.<br/><span class="dim">Yours won't</span><br/><span class="lit">stay failed.</span></h1>
+      <p class="lede">Flux records every step of your agent into a live execution graph. When a step breaks mid-task, <b>we resume from the break</b> — re-routed to the cheapest model that can finish the job.</p>
+      <div class="ctas">
+        <a class="btn btn-flux" href="mailto:ip259@cornell.edu?subject=FluxCompute%20demo">Book a demo</a>
+        <a class="btn btn-ghost btn-mono" href="https://pypi.org/project/fluxcompute/0.1.0/">$ pip install fluxcompute</a>
+      </div>
+      <div class="stat-strip">
+        <div class="stat"><div class="n">−64%</div><div class="l">inference spend</div></div>
+        <div class="stat"><div class="n">0</div><div class="l">lost tasks</div></div>
+        <div class="stat"><div class="n">1 line</div><div class="l">to integrate</div></div>
+      </div>
+    </div>
+
+    <div class="stage" id="stage">
+      <svg class="graph" viewBox="0 0 620 520" aria-label="Live execution graph: a step fails and Flux re-routes around it">
+        <defs>
+          <filter id="ng" x="-120%" y="-120%" width="340%" height="340%">
+            <feGaussianBlur stdDeviation="3.2" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <radialGradient id="halo">
+            <stop offset="0%" stop-color="#2fe6a8" stop-opacity=".4"/>
+            <stop offset="100%" stop-color="#2fe6a8" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="haloF">
+            <stop offset="0%" stop-color="#ff4d5e" stop-opacity=".45"/>
+            <stop offset="100%" stop-color="#ff4d5e" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+
+        <!-- distant layer -->
+        <g class="drift-bg" opacity=".5">
+          <g stroke="#2fe6a8" stroke-opacity=".07" stroke-width=".7" fill="none">
+            <path d="M60 70 Q 120 100 165 78"/><path d="M480 440 Q 530 400 585 428"/>
+            <path d="M540 90 Q 500 140 545 175"/><path d="M60 380 Q 105 350 90 300"/>
+          </g>
+          <g fill="#5c6472" opacity=".5">
+            <circle cx="60" cy="70" r="1.6"/><circle cx="165" cy="78" r="2"/><circle cx="480" cy="440" r="1.6"/>
+            <circle cx="585" cy="428" r="2"/><circle cx="540" cy="90" r="1.6"/><circle cx="545" cy="175" r="2"/>
+            <circle cx="60" cy="380" r="1.6"/><circle cx="90" cy="300" r="1.8"/><circle cx="300" cy="35" r="1.5"/>
+            <circle cx="35" cy="200" r="1.5"/><circle cx="600" cy="270" r="1.5"/>
+          </g>
+        </g>
+
+        <!-- main constellation -->
+        <g class="drift">
+          <path id="e1" class="edge lit" d="M150 205 Q 210 140 285 160"/>
+          <path id="e2" class="edge lit" d="M285 160 Q 360 120 420 175"/>
+          <path id="e3" class="edge" d="M285 160 Q 300 90 350 70"/>
+          <path id="e4" class="edge lit" d="M150 205 Q 160 280 215 320"/>
+          <path id="e5" class="edge lit" d="M215 320 Q 290 350 345 300"/>
+          <path id="e6" class="edge" d="M345 300 Q 400 250 420 175"/>
+          <path id="e7" class="edge lit" d="M420 175 Q 490 190 520 250"/>
+          <path id="e8" class="edge" d="M345 300 Q 400 350 445 390"/>
+          <path id="e9" class="edge" d="M520 250 Q 510 330 445 390"/>
+          <path id="e10" class="edge" d="M350 70 Q 420 60 470 100"/>
+
+          <path id="failEdge" d="M215 320 Q 235 385 290 430"/>
+          <path id="recoverPath" d="M215 320 Q 330 380 445 390"/>
+
+          <circle class="halo" cx="285" cy="160" r="30" fill="url(#halo)"/>
+          <circle class="halo h2" cx="420" cy="175" r="24" fill="url(#halo)"/>
+          <circle class="halo h3" cx="215" cy="320" r="22" fill="url(#halo)"/>
+          <circle class="halo h2" cx="150" cy="205" r="18" fill="url(#halo)"/>
+          <circle class="halo h3" cx="345" cy="300" r="18" fill="url(#halo)"/>
+          <circle class="halo" cx="520" cy="250" r="16" fill="url(#halo)"/>
+          <circle class="halo h2" cx="445" cy="390" r="18" fill="url(#halo)"/>
+          <circle id="failHalo" cx="290" cy="430" r="22" fill="url(#haloF)"/>
+
+          <circle class="node-core bright" cx="285" cy="160" r="6" filter="url(#ng)"/>
+          <circle class="node-core" cx="420" cy="175" r="5" filter="url(#ng)"/>
+          <circle class="node-core" cx="150" cy="205" r="4.5" filter="url(#ng)"/>
+          <circle class="node-core" cx="215" cy="320" r="4.5" filter="url(#ng)"/>
+          <circle class="node-core" cx="345" cy="300" r="4.5" filter="url(#ng)"/>
+          <circle class="node-core" cx="350" cy="70" r="3.5"/>
+          <circle class="node-core" cx="470" cy="100" r="3"/>
+          <circle class="node-core" cx="520" cy="250" r="4"/>
+          <circle class="node-core bright" cx="445" cy="390" r="4.5" filter="url(#ng)"/>
+          <g id="failNode"><circle class="node-core" cx="290" cy="430" r="4.5" filter="url(#ng)"/></g>
+
+          <text class="tag" x="298" y="150">plan</text>
+          <text class="tag" x="432" y="168">retrieve</text>
+          <text class="tag" x="108" y="200">ingest</text>
+          <text class="tag" x="175" y="332">tool-call</text>
+          <text class="tag" x="356" y="315">synthesize</text>
+          <text class="tag" x="533" y="245">verify</text>
+          <text class="tag" x="455" y="405">deliver</text>
+          <text class="tag" x="300" y="443">write-report</text>
+
+          <circle class="pulse" r="2">
+            <animateMotion dur="3.6s" repeatCount="indefinite"><mpath href="#e1"/></animateMotion>
+          </circle>
+          <circle class="pulse" r="2">
+            <animateMotion dur="4.4s" begin="-1.2s" repeatCount="indefinite"><mpath href="#e2"/></animateMotion>
+          </circle>
+          <circle class="pulse" r="1.8">
+            <animateMotion dur="5s" begin="-2s" repeatCount="indefinite"><mpath href="#e5"/></animateMotion>
+          </circle>
+          <circle class="pulse" r="1.8">
+            <animateMotion dur="4.2s" begin="-3s" repeatCount="indefinite"><mpath href="#e7"/></animateMotion>
+          </circle>
+          <circle class="pulse" r="1.6">
+            <animateMotion dur="5.6s" begin="-.6s" repeatCount="indefinite"><mpath href="#e4"/></animateMotion>
+          </circle>
+        </g>
+      </svg>
+
+      <div class="telemetry">
+        <div class="th"><span>FLUX · EXECUTION LOG</span><span class="live">LIVE</span></div>
+        <div class="tlog" id="tlog"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 </main>
 
 <footer>
@@ -101,6 +314,38 @@
 <script>
   const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (RM) document.documentElement.classList.add('no-motion');
+
+  /* telemetry + failure cycle */
+  const stage = document.getElementById('stage');
+  const tlog = document.getElementById('tlog');
+  function log(html) {
+    const r = document.createElement('div');
+    r.className = 'row new'; r.innerHTML = html;
+    tlog.appendChild(r);
+    while (tlog.children.length > 6) tlog.removeChild(tlog.firstChild);
+  }
+  const ts = () => `<span class="t">${new Date().toTimeString().slice(0,8)}</span>`;
+  const idle = [
+    () => log(`${ts()} <span class="ok">step ok</span> · plan → retrieve <span class="t">· 212ms</span>`),
+    () => log(`${ts()} <span class="acc">route</span> · synthesize → <span class="ok">mid-tier</span> <span class="t">· $0.0031</span>`),
+    () => log(`${ts()} <span class="ok">step ok</span> · tool-call:search <span class="t">· 640ms</span>`),
+    () => log(`${ts()} <span class="acc">route</span> · verify → <span class="ok">small-tier</span> <span class="t">· $0.0004</span>`),
+    () => log(`${ts()} <span class="ok">cache hit</span> · context reused <span class="t">· −1,842 tok</span>`),
+  ];
+  let li = 0, ct = 0;
+  function tick() {
+    const phase = ++ct % 14;
+    if (phase === 8) { stage.classList.add('phase-fail');
+      log(`${ts()} <span class="warn">step failed</span> · write-report <span class="t">· context_overflow</span>`); }
+    else if (phase === 10) { stage.classList.replace('phase-fail','phase-recover');
+      log(`${ts()} <span class="acc">resume</span> · graph-aware · from step 7/9`); }
+    else if (phase === 12) { stage.classList.replace('phase-recover','phase-healed');
+      log(`${ts()} <span class="ok">recovered</span> · re-routed <span class="t">· saved $0.42 vs replay</span>`); }
+    else if (phase === 0) { stage.classList.remove('phase-healed'); }
+    else if (phase % 2 === 0) { idle[li++ % idle.length](); }
+  }
+  idle[0](); idle[1](); idle[2]();
+  if (!RM) setInterval(tick, 1100); else stage.classList.add('phase-healed');
 
   // scroll reveal
   const io = new IntersectionObserver((es) => {
