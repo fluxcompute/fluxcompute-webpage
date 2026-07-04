@@ -269,6 +269,17 @@
   .partner h3 { margin: 0 0 var(--s-2); font: 650 var(--text-xl)/1.2 var(--font-sans); letter-spacing: var(--tracking-tight); }
   .partner p { margin: 0; color: var(--fg-1); font-size: var(--text-sm); max-width: 480px; line-height: var(--leading-body); }
   @media (max-width: 880px) { .team-grid { grid-template-columns: 1fr; } }
+
+  /* === Final CTA === */
+  .fin { border-top: 1px solid var(--line-1); text-align: center; overflow: hidden; position: relative;
+         background: radial-gradient(ellipse 70% 90% at 50% 110%, #0d1410 0%, var(--bg-0) 65%); }
+  .fin h2 { margin: 0 0 var(--s-3); font: 650 var(--text-3xl)/1.1 var(--font-sans); letter-spacing: var(--tracking-display); }
+  .fin h2 .lit { background: var(--accent-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .fin p { margin: 0 auto var(--s-6); color: var(--fg-1); max-width: 460px; line-height: var(--leading-body); }
+  .fin .mini-graph { margin: 0 auto var(--s-6); opacity: .8; }
+  footer .cols { display: flex; justify-content: space-between; gap: var(--s-5); flex-wrap: wrap; align-items: center; }
+  footer .flinks { display: flex; gap: var(--s-5); flex-wrap: wrap; }
+  footer a:hover { color: var(--fg-0); }
 </style>
 </head>
 <body>
@@ -603,10 +614,30 @@ response = <span class="kw">await</span> client.resume(t.task_id)
   </div>
 </section>
 
+<section class="fin">
+  <div class="container">
+    <svg class="mini-graph" width="260" height="60" viewBox="0 0 260 60" aria-hidden="true">
+      <g stroke="#2fe6a8" stroke-opacity=".3" fill="none"><path d="M20 30 Q 70 10 120 26"/><path d="M120 26 Q 180 40 240 24"/></g>
+      <g fill="#2fe6a8"><circle cx="20" cy="30" r="4"/><circle cx="120" cy="26" r="5"/></g>
+      <circle cx="240" cy="24" r="4" fill="#aef7dc"/>
+    </svg>
+    <h2>Your agents, <span class="lit">un-killable.</span></h2>
+    <p>Twenty minutes with the founders. Bring your worst-failing agent — we'll show you its execution graph.</p>
+    <a class="btn btn-flux" href="mailto:ip259@cornell.edu?subject=FluxCompute%20demo">Book a demo</a>
+  </div>
+</section>
+
 </main>
 
 <footer>
-  <div class="container">© 2026 FluxCompute</div>
+  <div class="container cols">
+    <div>© 2026 FluxCompute — the reliability layer for AI agents</div>
+    <div class="flinks">
+      <a href="https://pypi.org/project/fluxcompute/0.1.0/">PyPI</a>
+      <a href="https://docs.fluxcompute.dev">Docs</a>
+      <a href="mailto:ip259@cornell.edu">Contact</a>
+    </div>
+  </div>
 </footer>
 
 <script>
