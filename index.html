@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>FluxCompute — The reliability layer for AI agents</title>
-<meta name="description" content="FluxCompute records every agent step into a live execution graph. When a step fails, Flux resumes from the break — on the cheapest model that can finish the job."/>
+<title>FluxCompute — The runtime for AI agents</title>
+<meta name="description" content="FluxCompute is the runtime for AI agents — scheduling, routing, recovery, memory, and observability as primitives. You build the agent; Flux runs it reliably, at a fraction of the inference cost."/>
 <link rel="icon" href="logo.svg" type="image/svg+xml"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -163,28 +163,57 @@
     background: var(--bg-1); border: 1px solid var(--line-1); border-radius: var(--r-3);
     padding: var(--s-5); min-width: 0;
   }
-  .fail-card .fh { display: flex; align-items: center; gap: var(--s-2); font: 500 12px var(--font-mono); color: var(--fail); }
-  .fail-card .fh::before { content: "✗"; }
+  .fail-card .fh { display: flex; align-items: center; gap: var(--s-2); font: 500 12px var(--font-mono); color: var(--fg-1); }
+  .fail-card .fh::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); opacity: .45; flex-shrink: 0; }
   .fail-card p { margin: var(--s-3) 0 0; color: var(--fg-1); font-size: var(--text-sm); line-height: var(--leading-body); }
   .replay-line {
-    margin-top: var(--s-6); padding: var(--s-4) var(--s-5);
-    border: 1px dashed rgba(255,77,94,.35); border-radius: var(--r-3);
-    font: 500 var(--text-sm)/1.7 var(--font-mono); color: var(--fg-1); overflow-x: auto;
+    margin-top: var(--s-6); padding: var(--s-5);
+    border: 1px solid var(--line-2); border-radius: var(--r-3);
+    background: var(--bg-1); overflow-x: auto;
   }
-  .replay-line b { color: var(--fail); font-weight: 600; }
+  .replay-line .rl-bad { font: 500 var(--text-sm)/1.7 var(--font-mono); color: var(--fg-2); white-space: nowrap; }
+  .replay-line .rl-good { margin-top: 10px; font: 600 var(--text-md)/1.7 var(--font-mono); color: var(--accent); white-space: nowrap; }
   .replay-line .fix { color: var(--accent); }
   @media (max-width: 880px) { .fail-cards { grid-template-columns: 1fr; } }
 
-  /* === How it works === */
-  .how { border-top: 1px solid var(--line-1); }
-  .pillars { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); margin-top: var(--s-6); }
-  .pillar { background: var(--bg-1); border: 1px solid var(--line-1); border-radius: var(--r-3); padding: var(--s-5); min-width: 0; }
-  .pillar .num { font: 600 12px var(--font-mono); color: var(--accent); letter-spacing: .1em; }
-  .pillar h3 { margin: var(--s-2) 0 var(--s-2); font: 650 var(--text-lg)/1.25 var(--font-sans); letter-spacing: var(--tracking-tight); }
-  .pillar p { margin: 0; color: var(--fg-1); font-size: var(--text-sm); line-height: var(--leading-body); }
-  .pillar .detail { margin-top: var(--s-3); font: 400 12px/1.7 var(--font-mono); color: var(--fg-2); overflow-wrap: anywhere; }
-  .pillar svg { display: block; margin: var(--s-4) 0 0; }
-  @media (max-width: 880px) { .pillars { grid-template-columns: 1fr; } }
+  /* === Runtime primitives (centerpiece) === */
+  .runtime { border-top: 1px solid var(--line-1); position: relative; overflow: hidden; padding: var(--s-10) 0; background: var(--bg-0); }
+  .rt-glow { position: absolute; inset: 0; pointer-events: none;
+             background: radial-gradient(ellipse 72% 62% at 50% 40%, rgba(47,230,168,.10), transparent 70%); }
+  .runtime .container { position: relative; z-index: 1; }
+  .runtime .eyebrow { justify-content: center; }
+  .runtime h2.sec { text-align: center; font: 650 var(--text-3xl)/1.1 var(--font-sans); letter-spacing: var(--tracking-display);
+                    max-width: 16ch; margin-left: auto; margin-right: auto; }
+  .runtime p.sec-lede { text-align: center; margin-left: auto; margin-right: auto; max-width: 600px; }
+  .runtime-panel { margin-top: var(--s-7); border: 1px solid var(--line-2); border-radius: var(--r-4);
+                   background: linear-gradient(180deg, var(--bg-2), var(--bg-1)); box-shadow: var(--shadow-2); overflow: hidden; }
+  .rp-bar { display: flex; align-items: center; gap: 6px; padding: 11px 16px; background: var(--bg-2); border-bottom: 1px solid var(--line-1); }
+  .rp-bar i { width: 9px; height: 9px; border-radius: 50%; background: #272b34; }
+  .rp-bar > span:first-of-type { margin-left: 10px; font: 12px var(--font-mono); color: var(--fg-2); letter-spacing: .08em; }
+  .rp-bar .live { margin-left: auto; font: 10px var(--font-mono); color: var(--accent); letter-spacing: .14em; }
+  .rp-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .prim { padding: var(--s-5); border-right: 1px solid var(--line-1); border-bottom: 1px solid var(--line-1); min-width: 0; transition: background .3s; }
+  .prim:hover { background: rgba(47,230,168,.045); }
+  .rp-grid .prim:nth-child(4n) { border-right: 0; }
+  .rp-grid .prim:nth-child(n+5) { border-bottom: 0; }
+  .prim .ph { display: flex; align-items: baseline; gap: var(--s-2); }
+  .prim .pi { font: 500 11px var(--font-mono); color: var(--fg-2); letter-spacing: .12em; }
+  .prim .pn { font: 650 var(--text-lg)/1.2 var(--font-sans); letter-spacing: var(--tracking-tight); color: var(--fg-0); }
+  .prim p { margin: var(--s-2) 0 0; color: var(--fg-1); font-size: var(--text-sm); line-height: var(--leading-body); }
+  @media (max-width: 880px) {
+    .runtime { padding: var(--s-9) 0; }
+    .rp-grid { grid-template-columns: 1fr 1fr; }
+    .prim { border-right: 1px solid var(--line-1); border-bottom: 1px solid var(--line-1); }
+    .rp-grid .prim:nth-child(2n) { border-right: 0; }
+    .rp-grid .prim:nth-child(n+5) { border-bottom: 1px solid var(--line-1); }
+    .rp-grid .prim:nth-child(7), .rp-grid .prim:nth-child(8) { border-bottom: 0; }
+  }
+  @media (max-width: 560px) {
+    .rp-grid { grid-template-columns: 1fr; }
+    .prim { border-right: 0; }
+    .rp-grid .prim { border-bottom: 1px solid var(--line-1); }
+    .rp-grid .prim:last-child { border-bottom: 0; }
+  }
 
   /* === Proof / dashboard === */
   .proof { border-top: 1px solid var(--line-1); background: var(--bg-0); }
@@ -317,7 +346,7 @@
     <b>FluxCompute</b>
   </a>
   <div class="links">
-    <a href="#how">How it works</a>
+    <a href="#how">Runtime</a>
     <a href="#proof">Proof</a>
     <a href="#cost">Cost</a>
     <a href="#team">Team</a>
@@ -331,9 +360,9 @@
   <div class="grid-bg"></div>
   <div class="container hero-body">
     <div class="copy">
-      <div class="eyebrow">Execution graphs for AI agents</div>
-      <h1>Build fast.<br/><span class="lit">Break less.</span></h1>
-      <p class="lede">FluxCompute builds an execution graph of every step your agent takes — <b>routing each one to the cheapest model that can handle it</b>, and resuming from the exact point of failure instead of restarting the whole task.</p>
+      <div class="eyebrow">The runtime for AI agents</div>
+      <h1>Build the agent.<br/><span class="lit">Flux runs it.</span></h1>
+      <p class="lede">An agent isn't a model call — it's a long-running system that spans models, tools, and memory, and every team ends up hand-wiring its own scheduling, routing, and recovery to keep one alive. <b>Flux is the runtime that handles all of it</b> — you build the agent, and it runs reliably, at a fraction of the inference cost.</p>
       <div class="ctas">
         <a class="btn btn-flux" href="mailto:ip259@cornell.edu?subject=FluxCompute%20demo">Book a demo</a>
         <a class="btn btn-ghost btn-mono" href="https://pypi.org/project/fluxcompute/0.1.0/">$ pip install fluxcompute</a>
@@ -346,7 +375,7 @@
     </div>
 
     <div class="stage" id="stage">
-      <svg class="graph" viewBox="0 0 620 520" aria-label="Live execution graph: a step fails and Flux re-routes around it">
+      <svg class="graph" viewBox="0 0 620 520" aria-label="Live view of an agent run: a step fails and Flux re-routes around it">
         <defs>
           <filter id="ng" x="-120%" y="-120%" width="340%" height="340%">
             <feGaussianBlur stdDeviation="3.2" result="b"/>
@@ -449,9 +478,9 @@
 
 <section class="problem" id="problem">
   <div class="container">
-    <div class="eyebrow reveal">The problem</div>
-    <h2 class="sec reveal">Long-running agents die in the dark.</h2>
-    <p class="sec-lede reveal">A 40-step research task fails at step 37. Today you replay all 40 — every token, every tool call, every minute — and hope it doesn't happen again. It happens again.</p>
+    <div class="eyebrow reveal">The missing layer</div>
+    <h2 class="sec reveal">Every team is rebuilding the same plumbing.</h2>
+    <p class="sec-lede reveal">Retries, scheduling, state, routing, recovery — the operational layer that keeps an agent alive in production. Today it's hand-rolled per team, per agent, and it breaks in the same handful of ways.</p>
     <div class="fail-cards">
       <div class="fail-card reveal">
         <div class="fh">context_overflow</div>
@@ -466,48 +495,30 @@
         <p>The model loops, refuses, or times out at 2 a.m. Nobody notices until morning. The logs won't tell you which step, or why.</p>
       </div>
     </div>
-    <div class="replay-line reveal">without flux: <b>fail @ step 37 → replay 40 steps → 2× cost, 0 answers</b><br/>with flux:&nbsp;&nbsp;&nbsp; <span class="fix">fail @ step 37 → resume @ step 37 → done</span></div>
+    <div class="replay-line reveal">
+      <div class="rl-bad">without a runtime · fail @ step 37 → replay all 40 steps → 2× cost, 0 answers</div>
+      <div class="rl-good"><span class="fix">on flux · fail @ step 37 → resume @ step 37 → done</span></div>
+    </div>
   </div>
 </section>
 
-<section class="how" id="how">
+<section class="runtime" id="how">
+  <div class="rt-glow"></div>
   <div class="container">
-    <div class="eyebrow reveal">How it works</div>
-    <h2 class="sec reveal">One graph. Four consequences.</h2>
-    <p class="sec-lede reveal">Point your agent at Flux — LangGraph, CrewAI, or your own loop. Everything else falls out of the execution graph it builds automatically.</p>
-    <div class="pillars">
-      <div class="pillar reveal">
-        <div class="num">01</div>
-        <h3>Automatic execution graph</h3>
-        <p>Every LLM call and tool call is recorded into a DAG via context propagation. No decorators to sprinkle, no manual instrumentation — it works with any framework, or none.</p>
-        <svg width="220" height="56" viewBox="0 0 220 56" aria-hidden="true">
-          <g stroke="#2fe6a8" stroke-opacity=".35" fill="none"><path d="M14 28 H62"/><path d="M76 28 H124"/><path d="M138 28 H186"/></g>
-          <g fill="#2fe6a8"><circle cx="14" cy="28" r="4"/><circle cx="69" cy="28" r="4"/><circle cx="131" cy="28" r="4"/><circle cx="193" cy="28" r="4"/></g>
-        </svg>
-      </div>
-      <div class="pillar reveal">
-        <div class="num">02</div>
-        <h3>Failure classification</h3>
-        <p>Context overflow, tool error, budget breach, stall, refusal — classified the moment they happen and surfaced in the dashboard, not buried in a log file.</p>
-        <div class="detail">context_overflow · tool_error · budget · stall · refusal</div>
-      </div>
-      <div class="pillar reveal">
-        <div class="num">03</div>
-        <h3>Graph-aware resume</h3>
-        <p>Resume rebuilds the minimum context from the steps that succeeded — not a full-transcript replay — and re-runs only what broke.</p>
-        <svg width="220" height="56" viewBox="0 0 220 56" aria-hidden="true">
-          <g stroke="#2fe6a8" stroke-opacity=".35" fill="none"><path d="M14 28 H62"/><path d="M76 28 H124"/></g>
-          <path d="M131 28 H180" stroke="#ff4d5e" stroke-dasharray="4 3" fill="none"/>
-          <path d="M131 28 Q 160 8 193 24" stroke="#aef7dc" fill="none"/>
-          <g fill="#2fe6a8"><circle cx="14" cy="28" r="4"/><circle cx="69" cy="28" r="4"/><circle cx="131" cy="28" r="4"/></g>
-          <circle cx="193" cy="26" r="4" fill="#aef7dc"/>
-        </svg>
-      </div>
-      <div class="pillar reveal">
-        <div class="num">04</div>
-        <h3>Cost-aware routing</h3>
-        <p>The same intelligence that picks the cheapest capable model on the happy path decides the right model on retry. Reliability and savings are one decision, not two systems.</p>
-        <div class="detail">+ KV-cache persistence across steps · on-prem context compression</div>
+    <div class="eyebrow reveal">The runtime</div>
+    <h2 class="sec reveal">Everything an agent needs to run, built in.</h2>
+    <p class="sec-lede reveal">Scheduling, routing, recovery, memory — the operational layer you'd otherwise wire up by hand, provided as runtime primitives.</p>
+    <div class="runtime-panel reveal">
+      <div class="rp-bar"><i></i><i></i><i></i><span>flux runtime</span><span class="live">8 PRIMITIVES</span></div>
+      <div class="rp-grid">
+        <div class="prim"><div class="ph"><span class="pi">01</span><span class="pn">Execution</span></div><p>Runs each unit of work to completion across models, tools, and steps.</p></div>
+        <div class="prim"><div class="ph"><span class="pi">02</span><span class="pn">Scheduling</span></div><p>Orders and parallelizes steps — it knows what can run now and what has to wait.</p></div>
+        <div class="prim"><div class="ph"><span class="pi">03</span><span class="pn">Routing</span></div><p>Sizes each step by difficulty on the fly and sends it to the cheapest model that can actually do it.</p></div>
+        <div class="prim"><div class="ph"><span class="pi">04</span><span class="pn">Checkpointing</span></div><p>Captures state at every step, so work is never lost.</p></div>
+        <div class="prim"><div class="ph"><span class="pi">05</span><span class="pn">Recovery</span></div><p>Resumes from the exact point of failure instead of restarting the task.</p></div>
+        <div class="prim"><div class="ph"><span class="pi">06</span><span class="pn">Memory</span></div><p>Persists and compresses context across steps and across runs.</p></div>
+        <div class="prim"><div class="ph"><span class="pi">07</span><span class="pn">Observability</span></div><p>Every step, cost, and failure named and visible live.</p></div>
+        <div class="prim"><div class="ph"><span class="pi">08</span><span class="pn">Governance</span></div><p>Budgets, permissions, and limits enforced by the runtime, not your app code.</p></div>
       </div>
     </div>
   </div>
@@ -515,15 +526,15 @@
 
 <section class="proof" id="proof">
   <div class="container">
-    <div class="eyebrow reveal">See it working</div>
-    <h2 class="sec reveal">Every task, mapped. Every failure, named.</h2>
-    <p class="sec-lede reveal">The Task Graphs view — the DAG of a real run, colored by status, with the failure classified and the recovery costed.</p>
+    <div class="eyebrow reveal">The runtime, running</div>
+    <h2 class="sec reveal">Every step, named. Every failure, recovered.</h2>
+    <p class="sec-lede reveal">A real run inside the Flux dashboard — every step colored by status, each failure classified, each recovery costed.</p>
     <div class="dash reveal">
-      <div class="bar"><i></i><i></i><i></i><span>flux dashboard — task graphs</span><span class="live">LIVE</span></div>
+      <div class="bar"><i></i><i></i><i></i><span>flux dashboard — runs</span><span class="live">LIVE</span></div>
       <div class="dash-body">
         <div class="dash-left">
           <h4>task: market-research · run #147</h4>
-          <svg viewBox="0 0 520 240" aria-label="Execution DAG for task market-research">
+          <svg viewBox="0 0 520 240" aria-label="A real run inside Flux, each step colored by status">
             <g stroke="#2fe6a8" stroke-opacity=".3" fill="none">
               <path id="pe1" d="M40 120 Q 90 70 150 80"/><path id="pe2" d="M150 80 Q 220 60 280 90"/>
               <path id="pe3" d="M40 120 Q 100 170 170 165"/><path d="M170 165 Q 235 175 280 90"/>
@@ -595,7 +606,7 @@
 response = <span class="kw">await</span> client.resume(t.task_id)
 <span class="cm"># → minimal context from succeeded steps, failed step re-routed</span></pre>
     </div>
-    <p class="code-kicker reveal">LangGraph can't do cost-aware resume. Temporal can't do model-aware resume. <b>Flux is both</b> — because the graph and the router are the same system.</p>
+    <p class="code-kicker reveal">You write the agent's logic. <b>Flux runs it</b> — scheduling, routing, checkpointing, and recovery happen underneath, with no framework to adopt and no workflow to rewrite.</p>
   </div>
 </section>
 
@@ -603,7 +614,7 @@ response = <span class="kw">await</span> client.resume(t.task_id)
   <div class="container">
     <div class="eyebrow reveal">Cost</div>
     <h2 class="sec reveal">Reliability that pays for itself.</h2>
-    <p class="sec-lede reveal">Most queries don't need a frontier model. Flux routes each step to the cheapest model that holds accuracy — and applies the same judgment when it retries a failed one.</p>
+    <p class="sec-lede reveal">Flux sizes every step by difficulty on the fly and runs it on the cheapest model that can actually handle it — cutting inference spend without a line of model-selection code from you. The same judgment picks the right model on a retry.</p>
     <div class="meter-wrap reveal">
       <div class="meter-row m-base"><div class="lab">direct-to-frontier</div><div class="meter-track"><div class="meter-fill"></div></div><div class="val">1.00×</div></div>
       <div class="meter-row m-flux"><div class="lab">with flux</div><div class="meter-track"><div class="meter-fill"></div></div><div class="val">0.36×</div></div>
@@ -650,8 +661,8 @@ response = <span class="kw">await</span> client.resume(t.task_id)
       <g fill="#2fe6a8"><circle cx="20" cy="30" r="4"/><circle cx="120" cy="26" r="5"/></g>
       <circle cx="240" cy="24" r="4" fill="#aef7dc"/>
     </svg>
-    <h2>Your agents, <span class="lit">un-killable.</span></h2>
-    <p>Twenty minutes with the founders. Bring your worst-failing agent — we'll show you its execution graph.</p>
+    <h2>Put the runtime <span class="lit">under your agents.</span></h2>
+    <p>Twenty minutes with the founders. Bring your worst-failing agent and we'll run it on Flux.</p>
     <a class="btn btn-flux" href="mailto:ip259@cornell.edu?subject=FluxCompute%20demo">Book a demo</a>
   </div>
 </section>
@@ -660,7 +671,7 @@ response = <span class="kw">await</span> client.resume(t.task_id)
 
 <footer>
   <div class="container cols">
-    <div>© 2026 FluxCompute — the reliability layer for AI agents</div>
+    <div>© 2026 FluxCompute — the runtime for AI agents</div>
     <div class="flinks">
       <a href="https://pypi.org/project/fluxcompute/0.1.0/">PyPI</a>
       <a href="https://docs.fluxcompute.dev">Docs</a>
@@ -696,7 +707,7 @@ response = <span class="kw">await</span> client.resume(t.task_id)
     if (phase === 8) { stage.classList.add('phase-fail');
       log(`${ts()} <span class="warn">step failed</span> · write-report <span class="t">· context_overflow</span>`); }
     else if (phase === 10) { stage.classList.replace('phase-fail','phase-recover');
-      log(`${ts()} <span class="acc">resume</span> · graph-aware · from step 7/9`); }
+      log(`${ts()} <span class="acc">resume</span> · from checkpoint 7/9`); }
     else if (phase === 12) { stage.classList.replace('phase-recover','phase-healed');
       log(`${ts()} <span class="ok">recovered</span> · re-routed <span class="t">· saved $0.42 vs replay</span>`); }
     else if (phase === 0) { stage.classList.remove('phase-healed'); }
