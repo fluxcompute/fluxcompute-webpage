@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>FluxCompute — The runtime for AI agents</title>
-<meta name="description" content="FluxCompute is the runtime for AI agents — scheduling, routing, recovery, memory, and observability as primitives. You build the agent; Flux runs it reliably, at a fraction of the inference cost."/>
+<title>FluxCompute · The runtime for AI agents</title>
+<meta name="description" content="FluxCompute is the runtime for AI agents: scheduling, routing, recovery, memory, and observability as primitives. You build the agent, and Flux runs it reliably at a fraction of the inference cost."/>
 <link rel="icon" href="/favicon.ico" sizes="any"/>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
 <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png"/>
@@ -366,7 +366,7 @@
     <div class="copy">
       <div class="eyebrow">The runtime for AI agents</div>
       <h1>Build the agent.<br/><span class="lit">Flux runs it.</span></h1>
-      <p class="lede">An agent isn't a model call — it's a long-running system that spans models, tools, and memory, and every team ends up hand-wiring its own scheduling, routing, and recovery to keep one alive. <b>Flux is the runtime that handles all of it</b> — you build the agent, and it runs reliably, at a fraction of the inference cost.</p>
+      <p class="lede">An agent isn't one model call. It's a long-running system, and keeping one alive means building your own scheduling, routing, and recovery. <b>Flux is the runtime that handles all of it</b>, so you build the agent and it runs reliably, at a fraction of the cost.</p>
       <div class="ctas">
         <a class="btn btn-flux" href="mailto:ip259@cornell.edu?subject=FluxCompute%20demo">Book a demo</a>
         <a class="btn btn-ghost btn-mono" href="https://pypi.org/project/fluxcompute/0.1.0/">$ pip install fluxcompute</a>
@@ -484,7 +484,7 @@
   <div class="container">
     <div class="eyebrow reveal">The missing layer</div>
     <h2 class="sec reveal">Every team is rebuilding the same plumbing.</h2>
-    <p class="sec-lede reveal">Retries, scheduling, state, routing, recovery — the operational layer that keeps an agent alive in production. Today it's hand-rolled per team, per agent, and it breaks in the same handful of ways.</p>
+    <p class="sec-lede reveal">Retries, scheduling, state, routing, recovery: the operational layer that keeps an agent alive in production. Today it's hand-rolled per team, per agent, and it breaks in the same handful of ways.</p>
     <div class="fail-cards">
       <div class="fail-card reveal">
         <div class="fh">context_overflow</div>
@@ -492,7 +492,7 @@
       </div>
       <div class="fail-card reveal">
         <div class="fh">tool_error</div>
-        <p>A flaky API returns one 500 and the whole run is dead — even though 36 steps of perfectly good work already succeeded.</p>
+        <p>A flaky API returns one 500 and the whole run is dead, even though 36 steps of perfectly good work already succeeded.</p>
       </div>
       <div class="fail-card reveal">
         <div class="fh">model_stall</div>
@@ -511,12 +511,12 @@
   <div class="container">
     <div class="eyebrow reveal">The runtime</div>
     <h2 class="sec reveal">Everything an agent needs to run, built in.</h2>
-    <p class="sec-lede reveal">Scheduling, routing, recovery, memory — the operational layer you'd otherwise wire up by hand, provided as runtime primitives.</p>
+    <p class="sec-lede reveal">Scheduling, routing, recovery, memory: the operational layer you'd otherwise wire up by hand, provided as runtime primitives.</p>
     <div class="runtime-panel reveal">
       <div class="rp-bar"><i></i><i></i><i></i><span>flux runtime</span><span class="live">8 PRIMITIVES</span></div>
       <div class="rp-grid">
         <div class="prim"><div class="ph"><span class="pi">01</span><span class="pn">Execution</span></div><p>Runs each unit of work to completion across models, tools, and steps.</p></div>
-        <div class="prim"><div class="ph"><span class="pi">02</span><span class="pn">Scheduling</span></div><p>Orders and parallelizes steps — it knows what can run now and what has to wait.</p></div>
+        <div class="prim"><div class="ph"><span class="pi">02</span><span class="pn">Scheduling</span></div><p>Orders and parallelizes steps, and knows what can run now and what has to wait.</p></div>
         <div class="prim"><div class="ph"><span class="pi">03</span><span class="pn">Routing</span></div><p>Sizes each step by difficulty on the fly and sends it to the cheapest model that can actually do it.</p></div>
         <div class="prim"><div class="ph"><span class="pi">04</span><span class="pn">Checkpointing</span></div><p>Captures state at every step, so work is never lost.</p></div>
         <div class="prim"><div class="ph"><span class="pi">05</span><span class="pn">Recovery</span></div><p>Resumes from the exact point of failure instead of restarting the task.</p></div>
@@ -532,9 +532,9 @@
   <div class="container">
     <div class="eyebrow reveal">The runtime, running</div>
     <h2 class="sec reveal">Every step, named. Every failure, recovered.</h2>
-    <p class="sec-lede reveal">A real run inside the Flux dashboard — every step colored by status, each failure classified, each recovery costed.</p>
+    <p class="sec-lede reveal">A real run inside the Flux dashboard. Every step color-coded by outcome, every failure classified, every recovery costed.</p>
     <div class="dash reveal">
-      <div class="bar"><i></i><i></i><i></i><span>flux dashboard — runs</span><span class="live">LIVE</span></div>
+      <div class="bar"><i></i><i></i><i></i><span>flux dashboard · runs</span><span class="live">LIVE</span></div>
       <div class="dash-body">
         <div class="dash-left">
           <h4>task: market-research · run #147</h4>
@@ -590,14 +590,14 @@
         </div>
       </div>
     </div>
-    <p class="dash-caption reveal">Demo workload — reproduce it yourself: <code>pip install fluxcompute</code></p>
+    <p class="dash-caption reveal">Demo workload. Reproduce it yourself: <code>pip install fluxcompute</code></p>
   </div>
 </section>
 
 <section class="codesec" id="code">
   <div class="container">
     <div class="eyebrow reveal">The API</div>
-    <h2 class="sec reveal">Resume is one call.</h2>
+    <h2 class="sec reveal">Recovery is one call.</h2>
     <div class="term reveal">
       <div class="bar"><i></i><i></i><i></i><span>agent.py</span></div>
       <pre><span class="kw">with</span> client.task(<span class="str">"market-research"</span>) <span class="kw">as</span> t:
@@ -610,7 +610,7 @@
 response = <span class="kw">await</span> client.resume(t.task_id)
 <span class="cm"># → minimal context from succeeded steps, failed step re-routed</span></pre>
     </div>
-    <p class="code-kicker reveal">You write the agent's logic. <b>Flux runs it</b> — scheduling, routing, checkpointing, and recovery happen underneath, with no framework to adopt and no workflow to rewrite.</p>
+    <p class="code-kicker reveal">You write the agent's logic. <b>Flux runs it</b>: scheduling, routing, checkpointing, and recovery happen underneath, with no framework to adopt and no workflow to rewrite.</p>
   </div>
 </section>
 
@@ -618,7 +618,7 @@ response = <span class="kw">await</span> client.resume(t.task_id)
   <div class="container">
     <div class="eyebrow reveal">Cost</div>
     <h2 class="sec reveal">Reliability that pays for itself.</h2>
-    <p class="sec-lede reveal">Flux sizes every step by difficulty on the fly and runs it on the cheapest model that can actually handle it — cutting inference spend without a line of model-selection code from you. The same judgment picks the right model on a retry.</p>
+    <p class="sec-lede reveal">Flux sizes every step by difficulty on the fly and runs it on the cheapest model that can actually handle it, cutting inference spend without a line of model-selection code from you. The same judgment picks the right model on a retry.</p>
     <div class="meter-wrap reveal">
       <div class="meter-row m-base"><div class="lab">direct-to-frontier</div><div class="meter-track"><div class="meter-fill"></div></div><div class="val">1.00×</div></div>
       <div class="meter-row m-flux"><div class="lab">with flux</div><div class="meter-track"><div class="meter-fill"></div></div><div class="val">0.36×</div></div>
@@ -643,7 +643,7 @@ response = <span class="kw">await</span> client.resume(t.task_id)
         <div class="av">N</div>
         <h3>Niki Karanikola</h3>
         <div class="role">co-founder</div>
-        <p>Two years shipping production LLM inference, dense retrieval, and RAG pipelines at Veolia — re-architected enterprise knowledge access from weeks to minutes, 6× faster reporting cadence, +20% NDCG.</p>
+        <p>Two years shipping production LLM inference, dense retrieval, and RAG pipelines at Veolia, where she re-architected enterprise knowledge access from weeks to minutes, 6× faster reporting cadence, +20% NDCG.</p>
         <a class="mail" href="mailto:nk699@cornell.edu">nk699@cornell.edu</a>
       </div>
     </div>
@@ -651,7 +651,7 @@ response = <span class="kw">await</span> client.resume(t.task_id)
     <div class="partner reveal">
       <div>
         <h3>We're onboarding early design partners.</h3>
-        <p>Running agents in production — or trying to? We'll wire Flux under your stack with you, and you get direct access to the people who built it.</p>
+        <p>Running agents in production, or trying to? We'll wire Flux under your stack with you, and you get direct access to the people who built it.</p>
       </div>
       <a class="btn btn-flux" href="mailto:ip259@cornell.edu?subject=FluxCompute%20design%20partner">Become a design partner</a>
     </div>
@@ -675,7 +675,7 @@ response = <span class="kw">await</span> client.resume(t.task_id)
 
 <footer>
   <div class="container cols">
-    <div>© 2026 FluxCompute — the runtime for AI agents</div>
+    <div>© 2026 FluxCompute · the runtime for AI agents</div>
     <div class="flinks">
       <a href="https://pypi.org/project/fluxcompute/0.1.0/">PyPI</a>
       <a href="https://docs.fluxcompute.dev">Docs</a>
