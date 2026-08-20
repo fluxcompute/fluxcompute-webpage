@@ -48,16 +48,42 @@ Two surfaces, one accent.
 - `Design System.html` — token preview / spec sheet
 - `SKILL.md` — instructions for AI assistants designing in this system
 - `scripts/sync-tokens.sh` — regenerates `docs/tokens.css` from the root copy
+- `scripts/verify-deploy.sh` — checks what is actually live after a deploy
 - `internal/` — planning docs. Not published; see `.vercelignore`
 
 ## Deployment
 
-This repo backs **two Vercel projects**, both deploying from `main`:
+This repo backs **two Vercel projects**:
 
 | Domain | Vercel Root Directory | Serves |
 | ------ | --------------------- | ------ |
 | `fluxcompute.dev` | repo root | `index.html` |
 | `docs.fluxcompute.dev` | `docs/` | `docs/index.html` and siblings |
+
+**Deploys appear to be manual, not Git-triggered.** As of 2026-08-20 the repo
+has no GitHub deployment records, no PR checks and no Vercel bot comments, and
+the live build was dated 18 days after the last commit on `main` — which is
+what a `vercel --prod` or a dashboard Redeploy looks like, not a push hook.
+**Merging to `main` therefore does not ship anything by itself.** Confirm in
+Vercel → project → Deployments: a Git-connected deploy names a branch and
+commit in the Source column; a manual one says CLI or a username.
+
+To deploy manually:
+
+```bash
+vercel link && vercel --prod          # apex, from the repo root
+cd docs && vercel link && vercel --prod   # docs, from docs/
+```
+
+Then verify what is actually live, whatever the trigger was:
+
+```bash
+scripts/verify-deploy.sh
+```
+
+It checks deployment freshness, that the apex is serving current code, that the
+private files 404, that `docs/` isn't duplicated on the apex, and that the docs
+site answers. Exit 0 only when all of that holds.
 
 The docs site is a second project rather than a path rewrite on the first one
 because Vercel gives the filesystem precedence over rewrites — a
