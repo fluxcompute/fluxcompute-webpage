@@ -55,7 +55,7 @@
     </ul>
   </aside>
 
-  <main id="main">
+  <main id="main" tabindex="-1">
     <p class="eyebrow">Telemetry</p>
     <h1>Telemetry &amp; privacy</h1>
     <p class="lede">Telemetry is <strong>off unless you pass a <code>fluxcompute_key</code></strong>.
@@ -96,8 +96,10 @@
     </div>
 
     <h2>The two channels</h2>
-    <p>Both are batched and fire-and-forget, and neither can delay or fail an LLM call. A non-200 is
-      logged and the events are re-buffered; failures are never raised to the caller.</p>
+    <p>Both are batched and fire-and-forget, and neither can delay or fail an LLM call. Failures are
+      never raised to the caller — but the two failure modes differ: a transport error re-buffers
+      the batch for a later flush, while a non-200 response is logged and that batch is
+      <strong>dropped</strong>.</p>
     <div class="tbl-wrap">
       <table>
         <thead><tr><th>Channel</th><th>Endpoint</th><th>Carries</th></tr></thead>

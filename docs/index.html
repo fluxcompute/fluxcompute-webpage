@@ -55,7 +55,7 @@
     </ul>
   </aside>
 
-  <main id="main">
+  <main id="main" tabindex="-1">
     <p class="eyebrow">FluxCompute SDK</p>
     <h1>Route every query to the cheapest model that can answer it</h1>
     <p class="lede">FluxCompute classifies each request and dispatches it to the right tier — so
@@ -91,8 +91,8 @@
     )
 
     <span class="kw">print</span>(response.text)                          <span class="cm"># "4"</span>
-    <span class="kw">print</span>(response.fluxcompute.model_selected)    <span class="cm"># claude-haiku-4-5</span>
-    <span class="kw">print</span>(response.fluxcompute.savings_usd)       <span class="cm"># 0.0035</span>
+    <span class="kw">print</span>(response.fluxcompute.model_selected)    <span class="cm"># claude-haiku-4-5-20251001</span>
+    <span class="kw">print</span>(response.fluxcompute.savings_usd)       <span class="cm"># 0.00016</span>
 
     <span class="kw">await</span> client.close()
 

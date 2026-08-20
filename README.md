@@ -26,7 +26,7 @@ Developer-tool aesthetic in the lineage of Linear / Vercel / Modal — dark-firs
 ### Color
 Two surfaces, one accent.
 - **Surface:** near-black ink with cool undertone (not pure `#000`); paired with a near-white that's slightly warm.
-- **Accent:** electric cyan → violet gradient ("flux"). Used sparingly — for the logo, the primary CTA, key data viz, and active states. If everything is accent, nothing is.
+- **Accent:** terminal green (`--accent: #2fe6a8`), with `--accent-grad` running to a pale mint. Used sparingly — for the logo, the primary CTA, key data viz, and active states. If everything is accent, nothing is.
 - **Status colors:** muted, technical — never saturated traffic-light hues.
 
 ### Type
@@ -36,7 +36,7 @@ Two surfaces, one accent.
 
 ### Layout
 - 8px grid, dense but not cramped.
-- Hairline 1px dividers (`rgba(255,255,255,0.08)` on dark) over heavy borders.
+- Hairline 1px dividers (`--line-1`, `rgba(255,255,255,.07)` on dark) over heavy borders.
 - Subtle dotted/grid background on hero surfaces — never as decoration alone, always implying coordinate space.
 
 ## Files
@@ -47,6 +47,7 @@ Two surfaces, one accent.
 - `logo.svg` — primary mark
 - `Design System.html` — token preview / spec sheet
 - `SKILL.md` — instructions for AI assistants designing in this system
+- `scripts/sync-tokens.sh` — regenerates `docs/tokens.css` from the root copy
 - `internal/` — planning docs. Not published; see `.vercelignore`
 
 ## Deployment
@@ -64,11 +65,30 @@ because Vercel gives the filesystem precedence over rewrites — a
 `index.html` at the docs root, since that file exists.
 
 Because the docs project can only serve files inside `docs/`, that folder keeps
-its own copy of `tokens.css`, `logo.svg`, and the favicons. **If you edit the
-root `tokens.css`, copy it across:** `cp tokens.css docs/tokens.css`.
+its own copy of `tokens.css` and the favicons. **After editing the root
+`tokens.css`, regenerate the copy:**
 
-`.vercelignore` keeps `internal/`, `SKILL.md`, and `Design System.html` out of
-the deployment — they were publicly reachable before it existed.
+```bash
+scripts/sync-tokens.sh            # regenerate docs/tokens.css
+scripts/sync-tokens.sh --check    # exit 1 if it has drifted (CI-friendly)
+```
+
+Don't `cp` by hand — that deletes the generated-file banner, leaving no marker
+that `docs/tokens.css` is a copy.
+
+### .vercelignore
+
+There are two, and both matter:
+
+- **`.vercelignore`** (repo root) keeps `internal/`, `SKILL.md`, `Design
+  System.html`, `README.md` and `scripts/` out of the apex deployment — the
+  first three were publicly reachable before it existed. It also excludes
+  `docs/`, so the apex project doesn't publish a second, broken copy of the
+  docs site at `fluxcompute.dev/docs/*`.
+- **`docs/.vercelignore`** ignores nothing, and is load-bearing precisely
+  because of that: Vercel falls back to the root `.vercelignore` when a Root
+  Directory has none of its own, so without this file the `docs/` line above
+  would make the docs project exclude itself and deploy empty.
 
 ## Docs content
 

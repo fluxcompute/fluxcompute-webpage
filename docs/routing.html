@@ -55,7 +55,7 @@
     </ul>
   </aside>
 
-  <main id="main">
+  <main id="main" tabindex="-1">
     <p class="eyebrow">Routing</p>
     <h1>How routing works</h1>
     <p class="lede">Each request gets a difficulty score from a heuristic classifier — prompt
@@ -76,9 +76,18 @@
     </div>
 
     <h2>What you actually save</h2>
-    <p>Savings come from the queries that get downgraded. Against the default baseline, an
-      easy-tier call costs <strong>80% less</strong> and a medium-tier call <strong>40% less</strong>.
-      Hard queries route to the baseline model itself, so they save nothing by design.</p>
+    <p>Savings come from the queries that get downgraded. Hard queries route to the baseline model
+      itself, so they save nothing by design — the reduction comes entirely from the tiers below it.
+      How much depends on your provider, because the baseline differs:</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Provider</th><th>Default baseline</th><th>Easy tier</th><th>Medium tier</th></tr></thead>
+        <tbody>
+          <tr><td>Anthropic</td><td><code>claude-opus-4-8</code></td><td><strong>80% less</strong></td><td><strong>40% less</strong></td></tr>
+          <tr><td>OpenAI</td><td><code>o1</code></td><td><strong>99% less</strong></td><td><strong>83% less</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
     <p>Your overall reduction is therefore a function of how much of your traffic genuinely needs a
       frontier model. The <a class="link" href="/examples.html">example notebooks</a> measure this on
       a mixed workload rather than asserting a number.</p>

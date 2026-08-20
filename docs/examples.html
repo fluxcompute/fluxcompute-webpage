@@ -55,7 +55,7 @@
     </ul>
   </aside>
 
-  <main id="main">
+  <main id="main" tabindex="-1">
     <p class="eyebrow">Examples</p>
     <h1>Examples</h1>
     <p class="lede">Two runnable notebooks in the SDK repository. Both measure savings on real
@@ -78,6 +78,7 @@
 <pre>git clone https://github.com/fluxcompute/fluxcompute-sdk.git
 <span class="kw">cd</span> fluxcompute-sdk
 pip install -e <span class="str">".[dev]"</span>
+pip install jupyter                 <span class="cm"># not in the dev extra</span>
 <span class="kw">export</span> ANTHROPIC_API_KEY=sk-ant-...
 jupyter notebook examples/quickstart.ipynb</pre>
     </div>

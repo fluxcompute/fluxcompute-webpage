@@ -55,7 +55,7 @@
     </ul>
   </aside>
 
-  <main id="main">
+  <main id="main" tabindex="-1">
     <p class="eyebrow">Execution graphs</p>
     <h1>Execution graphs</h1>
     <p class="lede">Wrap work in a <code>task()</code> scope and the SDK records a DAG of everything
@@ -96,9 +96,9 @@
         <thead><tr><th>Reason</th><th>Meaning</th></tr></thead>
         <tbody>
           <tr><td><code>context_overflow</code></td><td>The request exceeded the model's context window</td></tr>
-          <tr><td><code>budget</code></td><td>A cost or token budget stopped the call</td></tr>
+          <tr><td><code>budget</code></td><td>A provider rate-limit, quota, or billing error — an HTTP 429 lands here</td></tr>
           <tr><td><code>tool_error</code></td><td>A tool or step raised</td></tr>
-          <tr><td><code>stall</code></td><td>The node made no progress</td></tr>
+          <tr><td><code>stall</code></td><td>Three consecutive failed same-name siblings — a retry loop</td></tr>
           <tr><td><code>refusal</code></td><td>The model declined to answer</td></tr>
           <tr><td><code>unknown</code></td><td>Nothing matched</td></tr>
         </tbody>
@@ -116,6 +116,15 @@
 app = graph.compile(checkpointer=FluxCheckpointer(flux_client))</pre>
     </div>
     <p>The adapter requires LangGraph itself — <code>pip install langgraph</code>.</p>
+    <div class="note">
+      <span class="lbl">Known limitation</span>
+      <p>The adapter mirrors only <strong>successful</strong> checkpoint writes. When a LangGraph
+        node raises, LangGraph never calls <code>put()</code>/<code>aput()</code> for that step, so
+        the adapter has no hook to observe the failure and it is never recorded in the task graph —
+        including the failure reasons above. If you need failure visibility for a failure-prone
+        node, wrap that node's body in <code>client.step()</code> directly; its auto-parenting works
+        fine alongside <code>FluxCheckpointer</code>.</p>
+    </div>
 
     <h2>Resume, and what durability costs</h2>
     <p>Recording and resume are both <strong>free and fully offline</strong>.
@@ -125,9 +134,11 @@ app = graph.compile(checkpointer=FluxCheckpointer(flux_client))</pre>
       <span class="lbl">What's paid</span>
       <p>Durability. If the process that ran the task has since exited, resuming means
         reconstructing the graph from wherever it was persisted, which needs telemetry to have been
-        on and the hosted platform to have kept a copy. Without both,
-        <code>client.resume()</code> on a task from a dead process raises
-        <code>FluxRecoveryNotInstalled</code>. See
+        on and the hosted platform to have kept a copy. The two ways that can be missing raise
+        different things: with no recovery plugin registered, <code>client.resume()</code> on a task
+        from a dead process raises <code>FluxRecoveryNotInstalled</code>; with a plugin registered
+        that cannot find the task, it raises <code>KeyError</code>, the same as an unknown
+        <code>task_id</code> in-process. See
         <a class="link" href="https://fluxcompute.dev">fluxcompute.dev</a> for the durable-recovery
         and dashboard offering.</p>
     </div>

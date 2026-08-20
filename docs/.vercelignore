@@ -1,0 +1,10 @@
+# Load-bearing, even though it excludes nothing.
+#
+# The root .vercelignore excludes docs/ so the apex project doesn't publish
+# this site. Vercel falls back to the root .vercelignore when a project's Root
+# Directory has none of its own — which would make the docs project exclude
+# itself and deploy empty. This file takes precedence for that project and
+# ignores nothing, so the docs site ships.
+#
+# Everything in docs/ is intended to be public. Keep it that way: anything
+# added here is served at docs.fluxcompute.dev.
