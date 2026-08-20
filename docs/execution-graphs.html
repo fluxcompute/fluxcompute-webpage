@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Execution graphs · FluxCompute docs</title>
+<meta name="description" content="Wrap work in a task() scope and the FluxCompute SDK records a DAG of every LLM call and step, with status, timings, cost, and failure classification — then resume the step that failed."/>
+<link rel="canonical" href="https://docs.fluxcompute.dev/execution-graphs.html"/>
+<link rel="icon" href="/favicon.ico" sizes="any"/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png"/>
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/tokens.css"/>
+<link rel="stylesheet" href="/docs.css"/>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<nav class="top">
+  <a class="lockup" href="/">
+    <svg width="30" height="24" viewBox="0 0 36 30" aria-hidden="true">
+      <defs>
+        <linearGradient id="nav-flux" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#2fe6a8"/><stop offset="100%" stop-color="#aef7dc"/>
+        </linearGradient>
+      </defs>
+      <path d="M 3 25 C 9 25, 11 5, 17 5 C 23 5, 25 25, 31 25" fill="none" stroke="url(#nav-flux)" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="3" cy="25" r="2.5" fill="#2fe6a8"/>
+      <circle cx="17" cy="5" r="2.5" fill="url(#nav-flux)"/>
+      <circle cx="31" cy="25" r="2.5" fill="#aef7dc"/>
+    </svg>
+    <b>FluxCompute</b><span class="tag">Docs</span>
+  </a>
+  <div class="links">
+    <a class="hide-sm" href="https://fluxcompute.dev">Home</a>
+    <a href="https://github.com/fluxcompute/fluxcompute-sdk">GitHub</a>
+    <a class="hide-sm" href="https://pypi.org/project/fluxcompute/">PyPI</a>
+  </div>
+</nav>
+
+<div class="shell">
+  <aside class="side">
+    <p class="grp">SDK</p>
+    <ul>
+      <li><a href="/">Introduction</a></li>
+      <li><a href="/routing.html">How routing works</a></li>
+      <li><a href="/execution-graphs.html" aria-current="page">Execution graphs</a></li>
+      <li><a href="/telemetry.html">Telemetry &amp; privacy</a></li>
+      <li><a href="/configuration.html">Configuration</a></li>
+      <li><a href="/examples.html">Examples</a></li>
+    </ul>
+  </aside>
+
+  <main id="main" tabindex="-1">
+    <p class="eyebrow">Execution graphs</p>
+    <h1>Execution graphs</h1>
+    <p class="lede">Wrap work in a <code>task()</code> scope and the SDK records a DAG of everything
+      that happened inside it — LLM calls and your own steps, auto-parented, with status, timings,
+      tokens, cost, and a rules-based failure classification.</p>
+
+    <div class="term">
+      <div class="bar"><i></i><i></i><i></i><span>research.py</span></div>
+<pre><span class="kw">async def</span> research(client):
+    <span class="kw">with</span> client.task(<span class="str">"market-research"</span>) <span class="kw">as</span> t:
+        <span class="kw">await</span> client.messages.create(
+            model=<span class="str">"auto"</span>,
+            messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"Who are the top 3 competitors?"</span>}],
+        )
+
+        <span class="kw">try</span>:
+            <span class="kw">with</span> client.step(<span class="str">"fetch-pricing"</span>):
+                <span class="kw">raise</span> TimeoutError(<span class="str">"pricing API timed out"</span>)
+        <span class="kw">except</span> TimeoutError:
+            <span class="kw">pass</span>  <span class="cm"># a step can fail without killing the whole task</span>
+
+    <span class="cm"># Re-runs only the failed step, with a rebuilt minimal context — not a</span>
+    <span class="cm"># replay of the whole transcript. The retry lands in the same graph,</span>
+    <span class="cm"># linked to the node it replaces via depends_on.</span>
+    response = <span class="kw">await</span> client.resume(t.task_id)
+
+    <span class="kw">return</span> client.get_task_graph(t.task_id)</pre>
+    </div>
+
+    <p>It works in any framework — no integration code — because parenting uses context variables
+      rather than a wrapper API.</p>
+
+    <h2>Failure classification</h2>
+    <p>A failed node is labelled by a rules-based classifier rather than left as a raw traceback.
+      The reasons are:</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Reason</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><code>context_overflow</code></td><td>The request exceeded the model's context window</td></tr>
+          <tr><td><code>budget</code></td><td>A provider rate-limit, quota, or billing error — an HTTP 429 lands here</td></tr>
+          <tr><td><code>tool_error</code></td><td>A tool or step raised</td></tr>
+          <tr><td><code>stall</code></td><td>Three consecutive failed same-name siblings — a retry loop</td></tr>
+          <tr><td><code>refusal</code></td><td>The model declined to answer</td></tr>
+          <tr><td><code>unknown</code></td><td>Nothing matched</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>LangGraph</h2>
+    <p>A zero-touch <a class="link" href="https://langchain-ai.github.io/langgraph/">LangGraph</a>
+      adapter is included, which mirrors super-steps into the same task graph. Replace
+      <code>MemorySaver()</code> with <code>FluxCheckpointer(client)</code>:</p>
+    <div class="term">
+      <div class="bar"><i></i><i></i><i></i><span>python</span></div>
+<pre><span class="kw">from</span> fluxcompute.integrations.langgraph <span class="kw">import</span> FluxCheckpointer
+
+app = graph.compile(checkpointer=FluxCheckpointer(flux_client))</pre>
+    </div>
+    <p>The adapter requires LangGraph itself — <code>pip install langgraph</code>.</p>
+    <div class="note">
+      <span class="lbl">Known limitation</span>
+      <p>The adapter mirrors only <strong>successful</strong> checkpoint writes. When a LangGraph
+        node raises, LangGraph never calls <code>put()</code>/<code>aput()</code> for that step, so
+        the adapter has no hook to observe the failure and it is never recorded in the task graph —
+        including the failure reasons above. If you need failure visibility for a failure-prone
+        node, wrap that node's body in <code>client.step()</code> directly; its auto-parenting works
+        fine alongside <code>FluxCheckpointer</code>.</p>
+    </div>
+
+    <h2>Resume, and what durability costs</h2>
+    <p>Recording and resume are both <strong>free and fully offline</strong>.
+      <code>client.resume()</code> works whenever the process that ran the task still holds its
+      graph, with no network call beyond the provider request itself.</p>
+    <div class="note">
+      <span class="lbl">What's paid</span>
+      <p>Durability. If the process that ran the task has since exited, resuming means
+        reconstructing the graph from wherever it was persisted, which needs telemetry to have been
+        on and the hosted platform to have kept a copy. The two ways that can be missing raise
+        different things: with no recovery plugin registered, <code>client.resume()</code> on a task
+        from a dead process raises <code>FluxRecoveryNotInstalled</code>; with a plugin registered
+        that cannot find the task, it raises <code>KeyError</code>, the same as an unknown
+        <code>task_id</code> in-process. See
+        <a class="link" href="https://fluxcompute.dev">fluxcompute.dev</a> for the durable-recovery
+        and dashboard offering.</p>
+    </div>
+
+    <div class="pagenav">
+      <a href="/routing.html"><span class="lbl">Previous</span>← How routing works</a>
+      <a href="/telemetry.html"><span class="lbl">Next</span>Telemetry &amp; privacy →</a>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <div class="inner">
+    <span>FluxCompute · Apache-2.0</span>
+    <div class="flinks">
+      <a href="https://fluxcompute.dev">fluxcompute.dev</a>
+      <a href="https://github.com/fluxcompute/fluxcompute-sdk">GitHub</a>
+      <a href="https://pypi.org/project/fluxcompute/">PyPI</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

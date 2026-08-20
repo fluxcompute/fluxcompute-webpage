@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Telemetry &amp; privacy · FluxCompute docs</title>
+<meta name="description" content="Telemetry is off unless you pass a fluxcompute_key. Prompt and response text are never sent by default. What the SDK reports, and how to turn it off or point it somewhere you control."/>
+<link rel="canonical" href="https://docs.fluxcompute.dev/telemetry.html"/>
+<link rel="icon" href="/favicon.ico" sizes="any"/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png"/>
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/tokens.css"/>
+<link rel="stylesheet" href="/docs.css"/>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<nav class="top">
+  <a class="lockup" href="/">
+    <svg width="30" height="24" viewBox="0 0 36 30" aria-hidden="true">
+      <defs>
+        <linearGradient id="nav-flux" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#2fe6a8"/><stop offset="100%" stop-color="#aef7dc"/>
+        </linearGradient>
+      </defs>
+      <path d="M 3 25 C 9 25, 11 5, 17 5 C 23 5, 25 25, 31 25" fill="none" stroke="url(#nav-flux)" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="3" cy="25" r="2.5" fill="#2fe6a8"/>
+      <circle cx="17" cy="5" r="2.5" fill="url(#nav-flux)"/>
+      <circle cx="31" cy="25" r="2.5" fill="#aef7dc"/>
+    </svg>
+    <b>FluxCompute</b><span class="tag">Docs</span>
+  </a>
+  <div class="links">
+    <a class="hide-sm" href="https://fluxcompute.dev">Home</a>
+    <a href="https://github.com/fluxcompute/fluxcompute-sdk">GitHub</a>
+    <a class="hide-sm" href="https://pypi.org/project/fluxcompute/">PyPI</a>
+  </div>
+</nav>
+
+<div class="shell">
+  <aside class="side">
+    <p class="grp">SDK</p>
+    <ul>
+      <li><a href="/">Introduction</a></li>
+      <li><a href="/routing.html">How routing works</a></li>
+      <li><a href="/execution-graphs.html">Execution graphs</a></li>
+      <li><a href="/telemetry.html" aria-current="page">Telemetry &amp; privacy</a></li>
+      <li><a href="/configuration.html">Configuration</a></li>
+      <li><a href="/examples.html">Examples</a></li>
+    </ul>
+  </aside>
+
+  <main id="main" tabindex="-1">
+    <p class="eyebrow">Telemetry</p>
+    <h1>Telemetry &amp; privacy</h1>
+    <p class="lede">Telemetry is <strong>off unless you pass a <code>fluxcompute_key</code></strong>.
+      Prompt and response text are never sent by default.</p>
+
+    <div class="note">
+      <span class="lbl">Early access</span>
+      <p>The hosted FluxCompute dashboard is in invite-only early access — the public telemetry
+        endpoint is not yet generally available, and without a reachable endpoint the SDK's
+        telemetry is a silent no-op (it never delays or fails your LLM calls). Self-hosted and dev
+        deployments can point the SDK anywhere via <code>FLUX_TELEMETRY_URL</code> /
+        <code>FLUX_GRAPH_EVENTS_URL</code>. For dashboard access, get in touch at
+        <a class="link" href="https://fluxcompute.dev">fluxcompute.dev</a>.</p>
+    </div>
+
+    <h2>What gets reported</h2>
+    <p>With a key set, the SDK reports:</p>
+    <ul>
+      <li>routing decisions, difficulty scores, token counts, cost, latency</li>
+      <li>execution-graph <strong>structure</strong>: node names, types, parentage, status, failure
+        reason, model, timings — and error strings, which are diagnostics</li>
+    </ul>
+    <p>Provider API keys are never transmitted.</p>
+
+    <h2>Opting in to content</h2>
+    <p>To include model output in the dashboard — a 500-character preview per node, plus full
+      prompt/output snapshots for failed nodes — opt in explicitly:</p>
+    <div class="term">
+      <div class="bar"><i></i><i></i><i></i><span>python</span></div>
+<pre>client = FluxClient(anthropic_key=<span class="str">"..."</span>, fluxcompute_key=<span class="str">"flx_..."</span>,
+                    content_capture=<span class="kw">True</span>)</pre>
+    </div>
+    <p>Content filtering happens before anything leaves the process; your local graph always keeps
+      full output. Turn everything off with <code>telemetry=False</code>.</p>
+    <div class="term">
+      <div class="bar"><i></i><i></i><i></i><span>python</span></div>
+<pre>client = FluxClient(anthropic_key=<span class="str">"..."</span>, telemetry=<span class="kw">False</span>)</pre>
+    </div>
+
+    <h2>The two channels</h2>
+    <p>Both are batched and fire-and-forget, and neither can delay or fail an LLM call. Failures are
+      never raised to the caller — but the two failure modes differ: a transport error re-buffers
+      the batch for a later flush, while a non-200 response is logged and that batch is
+      <strong>dropped</strong>.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Channel</th><th>Endpoint</th><th>Carries</th></tr></thead>
+        <tbody>
+          <tr><td>Telemetry</td><td><code>POST /v1/telemetry/event</code></td><td>Per-request routing + cost metrics</td></tr>
+          <tr><td>Graph events</td><td><code>POST /v1/graph/events</code></td><td>Execution-graph node structure</td></tr>
+          <tr><td>Identity</td><td><code>GET /v1/whoami</code></td><td>Key validation, on demand only</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The full wire format — every field, batching behaviour, and the versioning rules — is
+      documented in
+      <a class="link" href="https://github.com/fluxcompute/fluxcompute-sdk/blob/main/docs/telemetry-contract.md">docs/telemetry-contract.md</a>.</p>
+
+    <h2>Checking a key</h2>
+    <p>The emitters deliberately swallow failures, so a typo in a key would otherwise surface only
+      as a silent gap. <code>FluxClient.verify()</code> is a startup handshake that catches it
+      early: it raises <code>ValueError</code> if the endpoint answered and rejected the key, and
+      <code>ConnectionError</code> naming the endpoint if nothing answered at all.</p>
+    <div class="term">
+      <div class="bar"><i></i><i></i><i></i><span>python</span></div>
+<pre>account = <span class="kw">await</span> client.verify()</pre>
+    </div>
+
+    <h2>Sending it somewhere you control</h2>
+    <p>Point the SDK at a local server or your own implementation of the contract:</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Variable</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td><code>FLUX_TELEMETRY_URL</code></td><td>Sets the telemetry endpoint. Highest precedence</td></tr>
+          <tr><td><code>FLUX_GRAPH_EVENTS_URL</code></td><td>Sets the graph-events endpoint — and, if <code>FLUX_TELEMETRY_URL</code> is unset, the telemetry endpoint's host is derived from it, as is <code>/v1/whoami</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagenav">
+      <a href="/execution-graphs.html"><span class="lbl">Previous</span>← Execution graphs</a>
+      <a href="/configuration.html"><span class="lbl">Next</span>Configuration →</a>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <div class="inner">
+    <span>FluxCompute · Apache-2.0</span>
+    <div class="flinks">
+      <a href="https://fluxcompute.dev">fluxcompute.dev</a>
+      <a href="https://github.com/fluxcompute/fluxcompute-sdk">GitHub</a>
+      <a href="https://pypi.org/project/fluxcompute/">PyPI</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

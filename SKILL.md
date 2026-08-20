@@ -3,16 +3,16 @@
 When designing inside this project, follow these rules. Read `README.md` for brand context first.
 
 ## Always
-1. **Load `tokens.css`.** Don't redefine colors, type, spacing, or radius — they exist as CSS custom properties. Use them: `var(--bg-1)`, `var(--fg-0)`, `var(--flux-gradient)`, `var(--s-5)`, `var(--r-3)`.
+1. **Load `tokens.css`.** Don't redefine colors, type, spacing, or radius — they exist as CSS custom properties. Use them: `var(--bg-1)`, `var(--fg-0)`, `var(--accent-grad)`, `var(--s-5)`, `var(--r-3)`.
 2. **Default to dark.** Every page starts with `<html data-theme="dark">`. Light is a variant, not a peer.
 3. **Use the type primitives.** `t-display`, `t-h1..h3`, `t-body`, `t-small`, `t-caps`, `t-mono`. Don't hand-roll font stacks.
 4. **Use the components.** `.btn`, `.btn-flux`, `.btn-ghost`, `.btn-primary`, `.card`, `.input`, `.badge`, `.code` are defined. Compose with these before inventing.
 5. **Mono for numbers.** Latency, IDs, prices, region codes, deploy hashes, file sizes — all JetBrains Mono. Don't put numbers in Inter Tight body type.
 
 ## Color rules
-- **One accent per surface.** The flux gradient is loud. Use it for: the logo, the primary CTA, one hero element, and key data viz. If you've used it three times on a page, kill two.
-- **Status colors are muted.** `--status-ok/warn/err` are deliberately desaturated. Don't replace them with bright greens/reds.
-- **Borders are hairlines.** `var(--line-1)` (6% white) is the default divider. `--line-2` for inputs/cards. `--line-3` only for emphasized borders. Never solid 1–2px in `fg-0`.
+- **One accent per surface.** The accent gradient (`--accent-grad`) is loud. Use it for: the logo, the primary CTA, one hero element, and key data viz. If you've used it three times on a page, kill two.
+- **Status colors are muted.** `--ok-text` and `--fail` are deliberately desaturated. Don't replace them with bright greens/reds.
+- **Borders are hairlines.** `var(--line-1)` (7% white) is the default divider, `--line-2` (13%) for inputs/cards. There is no `--line-3`. Never solid 1–2px in `fg-0`.
 - **Don't introduce new colors.** If a design "needs" a different blue, you're probably reaching for accent when the answer is hierarchy via type weight or surface elevation.
 
 ## Layout rules
@@ -22,7 +22,7 @@ When designing inside this project, follow these rules. Read `README.md` for bra
 - **Grid backgrounds, not gradients.** Hero surfaces use the dotted `.bg-grid` utility, not abstract blurry blobs. Implies coordinate space, not "AI."
 
 ## Type rules
-- **Tight tracking on display.** `letter-spacing: var(--tracking-display)` (-0.035em) at 40px+. Inter Tight is already tight; on big sizes it needs more.
+- **Tight tracking on display.** `letter-spacing: var(--tracking-display)` (-0.03em) at 40px+. Inter Tight is already tight; on big sizes it needs more.
 - **Pretty wrapping.** Use `text-wrap: pretty;` on body copy, `text-wrap: balance;` on headlines.
 - **No serif. Ever.** This is infrastructure, not a magazine.
 
@@ -36,7 +36,7 @@ When designing inside this project, follow these rules. Read `README.md` for bra
 ## What to avoid
 - Glassmorphism, frosted glass cards
 - Hexagon mesh / circuit-board patterns
-- Generic "AI blue" gradients (use the cyan→violet flux gradient)
+- Generic "AI blue" gradients (use the terminal-green `--accent-grad`)
 - Robot/brain/neural-network iconography
 - Drop shadows on everything (use `--shadow-1` and `--shadow-2` rarely; flat is the default)
 - Emoji. The brand has no emoji vocabulary.
@@ -53,6 +53,6 @@ Match the existing shape language: 1px hairline borders, 6–14px radius, mono l
 - `tokens.css` — load this on every page
 - `logo.svg` — full lockup; for inline use copy the `<svg>` from `Design System.html` and set `currentColor` for the wordmark
 - `Design System.html` — reference / spec sheet
-- `Landing.html` — example application
+- `index.html` — the landing page, the system applied end to end
 
 When in doubt: open Linear, Vercel, or Modal in another tab. Ask "would they ship this?" If no, simplify.

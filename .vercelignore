@@ -1,0 +1,21 @@
+# Files that live in this repo but must never be served by the APEX project
+# (fluxcompute.dev, Root Directory = repo root).
+#
+# Verified before this existed: fluxcompute.dev/SKILL.md and
+# fluxcompute.dev/docs/superpowers/plans/*.md both returned 200.
+internal/
+SKILL.md
+Design System.html
+README.md
+scripts/
+
+# docs/ is served by its own Vercel project (docs.fluxcompute.dev, Root
+# Directory = docs/), so the apex must NOT also publish it — those pages use
+# root-relative /docs.css and /routing.html, which only resolve on the docs
+# host, and would render unstyled with dead links at fluxcompute.dev/docs/*.
+#
+# This line is safe for the docs project only because docs/.vercelignore
+# exists: Vercel uses the Root Directory's .vercelignore when there is one and
+# falls back to this file when there isn't. Without that file, this line would
+# strip the docs project's entire content. Do not delete docs/.vercelignore.
+docs/
