@@ -38,7 +38,11 @@ nav.top .links a:hover { color: var(--fg-0); }
   display: grid; grid-template-columns: 208px minmax(0, 1fr); gap: var(--s-8);
   align-items: start;
 }
-@media (max-width: 880px) { .shell { grid-template-columns: 1fr; gap: var(--s-5); } }
+/* minmax(0, 1fr) rather than a bare 1fr, which means minmax(auto, 1fr): a grid
+   item's auto minimum won't shrink below its content, so a wide table or code
+   block could push the page into a horizontal scroll. main also carries
+   min-width: 0, so this is the belt to that pair of braces. */
+@media (max-width: 880px) { .shell { grid-template-columns: minmax(0, 1fr); gap: var(--s-5); } }
 
 /* ---- sidebar ---- */
 .side { position: sticky; top: 84px; padding: var(--s-8) 0 var(--s-6); }
