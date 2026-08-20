@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Configuration · FluxCompute docs</title>
+<meta name="description" content="FluxClient constructor options and the environment variables the FluxCompute SDK reads for provider keys, telemetry, and endpoint overrides."/>
+<link rel="canonical" href="https://docs.fluxcompute.dev/configuration.html"/>
+<link rel="icon" href="/favicon.ico" sizes="any"/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png"/>
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/tokens.css"/>
+<link rel="stylesheet" href="/docs.css"/>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<nav class="top">
+  <a class="lockup" href="/">
+    <svg width="30" height="24" viewBox="0 0 36 30" aria-hidden="true">
+      <defs>
+        <linearGradient id="nav-flux" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#2fe6a8"/><stop offset="100%" stop-color="#aef7dc"/>
+        </linearGradient>
+      </defs>
+      <path d="M 3 25 C 9 25, 11 5, 17 5 C 23 5, 25 25, 31 25" fill="none" stroke="url(#nav-flux)" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="3" cy="25" r="2.5" fill="#2fe6a8"/>
+      <circle cx="17" cy="5" r="2.5" fill="url(#nav-flux)"/>
+      <circle cx="31" cy="25" r="2.5" fill="#aef7dc"/>
+    </svg>
+    <b>FluxCompute</b><span class="tag">Docs</span>
+  </a>
+  <div class="links">
+    <a class="hide-sm" href="https://fluxcompute.dev">Home</a>
+    <a href="https://github.com/fluxcompute/fluxcompute-sdk">GitHub</a>
+    <a class="hide-sm" href="https://pypi.org/project/fluxcompute/">PyPI</a>
+  </div>
+</nav>
+
+<div class="shell">
+  <aside class="side">
+    <p class="grp">SDK</p>
+    <ul>
+      <li><a href="/">Introduction</a></li>
+      <li><a href="/routing.html">How routing works</a></li>
+      <li><a href="/execution-graphs.html">Execution graphs</a></li>
+      <li><a href="/telemetry.html">Telemetry &amp; privacy</a></li>
+      <li><a href="/configuration.html" aria-current="page">Configuration</a></li>
+      <li><a href="/examples.html">Examples</a></li>
+    </ul>
+  </aside>
+
+  <main id="main">
+    <p class="eyebrow">Configuration</p>
+    <h1>Configuration</h1>
+    <p class="lede">Keys are read from the environment when not passed explicitly, matching the
+      Anthropic and OpenAI SDK conventions.</p>
+
+    <h2>Environment variables</h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Variable</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>ANTHROPIC_API_KEY</code></td><td>Anthropic provider key</td></tr>
+          <tr><td><code>OPENAI_API_KEY</code></td><td>OpenAI provider key</td></tr>
+          <tr><td><code>FLUXCOMPUTE_KEY</code></td><td>FluxCompute key — enables telemetry</td></tr>
+          <tr><td><code>FLUX_TELEMETRY_URL</code></td><td>Override the telemetry endpoint</td></tr>
+          <tr><td><code>FLUX_GRAPH_EVENTS_URL</code></td><td>Override the graph-events endpoint</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Client options</h2>
+    <p>All <code>FluxClient</code> arguments are keyword-only:</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Option</th><th>Default</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>anthropic_key</code></td><td><code>None</code></td><td>Anthropic API key. Required for Anthropic models</td></tr>
+          <tr><td><code>openai_key</code></td><td><code>None</code></td><td>OpenAI API key. Required for OpenAI models</td></tr>
+          <tr><td><code>fluxcompute_key</code></td><td><code>None</code></td><td>Enables telemetry and the dashboard</td></tr>
+          <tr><td><code>baseline_model</code></td><td>most expensive</td><td>The model savings are compared against</td></tr>
+          <tr><td><code>telemetry</code></td><td><code>True</code></td><td>Set <code>False</code> to disable both channels entirely</td></tr>
+          <tr><td><code>content_capture</code></td><td><code>False</code></td><td>Also ship response content. Requires telemetry and a key</td></tr>
+          <tr><td><code>provider</code></td><td>auto-detected</td><td>Force <code>"anthropic"</code> or <code>"openai"</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The provider is auto-detected when only one key is given; if both are set, Anthropic is used
+      unless you pass <code>provider</code> explicitly.</p>
+
+    <div class="term">
+      <div class="bar"><i></i><i></i><i></i><span>python</span></div>
+<pre>client = FluxClient(
+    fluxcompute_key=<span class="str">"flx_..."</span>,          <span class="cm"># or FLUXCOMPUTE_KEY</span>
+    baseline_model=<span class="str">"claude-opus-4-8"</span>,  <span class="cm"># what savings are measured against</span>
+    provider=<span class="str">"anthropic"</span>,
+)</pre>
+    </div>
+    <p>Close the client when you're done so buffered telemetry is flushed:</p>
+    <div class="term">
+      <div class="bar"><i></i><i></i><i></i><span>python</span></div>
+<pre><span class="kw">await</span> client.close()</pre>
+    </div>
+
+    <h2>Wire contract</h2>
+    <p>The format the SDK sends is documented and versioned in
+      <a class="link" href="https://github.com/fluxcompute/fluxcompute-sdk/blob/main/docs/telemetry-contract.md">docs/telemetry-contract.md</a>
+      — see <a class="link" href="/telemetry.html">Telemetry &amp; privacy</a> for what is and isn't
+      included.</p>
+
+    <div class="pagenav">
+      <a href="/telemetry.html"><span class="lbl">Previous</span>← Telemetry &amp; privacy</a>
+      <a href="/examples.html"><span class="lbl">Next</span>Examples →</a>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <div class="inner">
+    <span>FluxCompute · Apache-2.0</span>
+    <div class="flinks">
+      <a href="https://fluxcompute.dev">fluxcompute.dev</a>
+      <a href="https://github.com/fluxcompute/fluxcompute-sdk">GitHub</a>
+      <a href="https://pypi.org/project/fluxcompute/">PyPI</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

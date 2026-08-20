@@ -1,0 +1,78 @@
+/* FluxCompute design tokens — terminal green system (2026-07)
+ *
+ * COPY of ../tokens.css. The docs site is a separate Vercel project whose Root
+ * Directory is docs/, so it can only serve files from inside this folder.
+ * If you edit the root tokens.css, copy it here too:
+ *     cp tokens.css docs/tokens.css
+ */
+:root {
+  /* surfaces */
+  --bg-0: #08090c;
+  --bg-1: #0b0d12;
+  --bg-2: #101218;
+  --bg-3: #14161c;
+
+  /* text */
+  --fg-0: #f2f4f8;
+  --fg-1: #9aa3b2;
+  --fg-2: #5c6472;
+
+  /* lines */
+  --line-1: rgba(255,255,255,.07);
+  --line-2: rgba(255,255,255,.13);
+
+  /* accent — terminal green. no violet, ever. */
+  --accent: #2fe6a8;
+  --accent-hi: #aef7dc;
+  --accent-dim: rgba(47,230,168,.13);
+  --accent-grad: linear-gradient(120deg, #2fe6a8, #aef7dc);
+  --ok-text: #d6f9ec;
+
+  /* failure red — the only other hue */
+  --fail: #ff4d5e;
+  --fail-dim: rgba(255,77,94,.12);
+
+  /* type */
+  --font-sans: "Inter Tight", Inter, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 19px;
+  --text-xl: 26px;
+  --text-2xl: 34px;
+  --text-3xl: 47px;
+  --text-4xl: clamp(41px, 6.4vw, 64px);
+  --leading-tight: 1.06;
+  --leading-body: 1.65;
+  --tracking-display: -0.03em;
+  --tracking-tight: -0.015em;
+  --tracking-mono: 0.16em;
+
+  /* spacing (8px grid) */
+  --s-1: 4px;  --s-2: 8px;   --s-3: 12px;  --s-4: 16px;
+  --s-5: 24px; --s-6: 32px;  --s-7: 48px;  --s-8: 64px;
+  --s-9: 96px; --s-10: 140px;
+
+  /* radius */
+  --r-1: 4px; --r-2: 7px; --r-3: 10px; --r-4: 14px;
+
+  /* shadow */
+  --shadow-1: 0 10px 30px rgba(0,0,0,.45);
+  --shadow-2: 0 30px 80px rgba(0,0,0,.6);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg-0);
+  color: var(--fg-0);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}

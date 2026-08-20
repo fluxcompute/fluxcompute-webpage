@@ -41,8 +41,39 @@ Two surfaces, one accent.
 
 ## Files
 
+- `index.html` — the landing page served at `fluxcompute.dev`
+- `docs/` — the docs site served at `docs.fluxcompute.dev` (see below)
 - `tokens.css` — color, type, spacing, radius, shadow tokens (CSS custom properties)
 - `logo.svg` — primary mark
 - `Design System.html` — token preview / spec sheet
-- `Landing.html` — UI kit applied to a marketing page
 - `SKILL.md` — instructions for AI assistants designing in this system
+- `internal/` — planning docs. Not published; see `.vercelignore`
+
+## Deployment
+
+This repo backs **two Vercel projects**, both deploying from `main`:
+
+| Domain | Vercel Root Directory | Serves |
+| ------ | --------------------- | ------ |
+| `fluxcompute.dev` | repo root | `index.html` |
+| `docs.fluxcompute.dev` | `docs/` | `docs/index.html` and siblings |
+
+The docs site is a second project rather than a path rewrite on the first one
+because Vercel gives the filesystem precedence over rewrites — a
+`docs.fluxcompute.dev/*` → `/docs/*` rewrite would still serve the root
+`index.html` at the docs root, since that file exists.
+
+Because the docs project can only serve files inside `docs/`, that folder keeps
+its own copy of `tokens.css`, `logo.svg`, and the favicons. **If you edit the
+root `tokens.css`, copy it across:** `cp tokens.css docs/tokens.css`.
+
+`.vercelignore` keeps `internal/`, `SKILL.md`, and `Design System.html` out of
+the deployment — they were publicly reachable before it existed.
+
+## Docs content
+
+`docs/` documents the public, Apache-2.0 [FluxCompute
+SDK](https://github.com/fluxcompute/fluxcompute-sdk) only — its README and
+`docs/telemetry-contract.md` are the source of truth. Nothing about the hosted
+platform's internals belongs here. When the SDK's routing table, env vars, or
+client options change, these pages need the same edit.

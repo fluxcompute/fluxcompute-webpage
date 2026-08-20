@@ -1,0 +1,7 @@
+# Files that live in this repo but must never be served publicly.
+# Verified before this existed: fluxcompute.dev/SKILL.md and
+# fluxcompute.dev/docs/superpowers/plans/*.md both returned 200.
+internal/
+SKILL.md
+Design System.html
+README.md

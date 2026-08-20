@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>FluxCompute docs · Route every query to the cheapest model that can answer it</title>
+<meta name="description" content="Install the FluxCompute SDK, make your first routed call, and read the savings off the response. A drop-in replacement for the Anthropic and OpenAI SDKs."/>
+<link rel="canonical" href="https://docs.fluxcompute.dev/"/>
+<link rel="icon" href="/favicon.ico" sizes="any"/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png"/>
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/tokens.css"/>
+<link rel="stylesheet" href="/docs.css"/>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<nav class="top">
+  <a class="lockup" href="/">
+    <svg width="30" height="24" viewBox="0 0 36 30" aria-hidden="true">
+      <defs>
+        <linearGradient id="nav-flux" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#2fe6a8"/><stop offset="100%" stop-color="#aef7dc"/>
+        </linearGradient>
+      </defs>
+      <path d="M 3 25 C 9 25, 11 5, 17 5 C 23 5, 25 25, 31 25" fill="none" stroke="url(#nav-flux)" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="3" cy="25" r="2.5" fill="#2fe6a8"/>
+      <circle cx="17" cy="5" r="2.5" fill="url(#nav-flux)"/>
+      <circle cx="31" cy="25" r="2.5" fill="#aef7dc"/>
+    </svg>
+    <b>FluxCompute</b><span class="tag">Docs</span>
+  </a>
+  <div class="links">
+    <a class="hide-sm" href="https://fluxcompute.dev">Home</a>
+    <a href="https://github.com/fluxcompute/fluxcompute-sdk">GitHub</a>
+    <a class="hide-sm" href="https://pypi.org/project/fluxcompute/">PyPI</a>
+  </div>
+</nav>
+
+<div class="shell">
+  <aside class="side">
+    <p class="grp">SDK</p>
+    <ul>
+      <li><a href="/" aria-current="page">Introduction</a></li>
+      <li><a href="/routing.html">How routing works</a></li>
+      <li><a href="/execution-graphs.html">Execution graphs</a></li>
+      <li><a href="/telemetry.html">Telemetry &amp; privacy</a></li>
+      <li><a href="/configuration.html">Configuration</a></li>
+      <li><a href="/examples.html">Examples</a></li>
+    </ul>
+  </aside>
+
+  <main id="main">
+    <p class="eyebrow">FluxCompute SDK</p>
+    <h1>Route every query to the cheapest model that can answer it</h1>
+    <p class="lede">FluxCompute classifies each request and dispatches it to the right tier — so
+      simple questions stop costing frontier-model prices — and reports exactly what you saved on
+      every call.</p>
+
+    <div class="btn-row">
+      <a class="btn btn-flux" href="/routing.html">How routing works</a>
+      <a class="btn btn-ghost" href="https://github.com/fluxcompute/fluxcompute-sdk">View on GitHub</a>
+    </div>
+
+    <h2>Install</h2>
+    <div class="term">
+      <div class="bar"><i></i><i></i><i></i><span>shell</span></div>
+<pre>pip install fluxcompute</pre>
+    </div>
+    <p>Python 3.10 or newer. The SDK is Apache-2.0 licensed and has no FluxCompute account
+      requirement — routing and savings accounting work entirely against your own provider keys.</p>
+
+    <h2>Your first routed call</h2>
+    <div class="term">
+      <div class="bar"><i></i><i></i><i></i><span>quickstart.py</span></div>
+<pre><span class="kw">import</span> asyncio
+<span class="kw">from</span> fluxcompute <span class="kw">import</span> FluxClient
+
+
+<span class="kw">async def</span> main():
+    client = FluxClient(anthropic_key=<span class="str">"sk-ant-..."</span>)
+
+    response = <span class="kw">await</span> client.messages.create(
+        model=<span class="str">"auto"</span>,                                    <span class="cm"># let FluxCompute decide</span>
+        messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"What is 2+2?"</span>}],
+    )
+
+    <span class="kw">print</span>(response.text)                          <span class="cm"># "4"</span>
+    <span class="kw">print</span>(response.fluxcompute.model_selected)    <span class="cm"># claude-haiku-4-5</span>
+    <span class="kw">print</span>(response.fluxcompute.savings_usd)       <span class="cm"># 0.0035</span>
+
+    <span class="kw">await</span> client.close()
+
+
+asyncio.run(main())</pre>
+    </div>
+
+    <h2>Migrating from the Anthropic or OpenAI SDK</h2>
+    <p>Swap the client and pass <code>model="auto"</code>. The response object keeps the fields you
+      already use, with routing and cost data added under <code>response.fluxcompute</code>. Pin a
+      specific model any time by passing it instead of <code>"auto"</code>.</p>
+    <p>Keys are read from the environment when not passed explicitly, matching the provider SDK
+      conventions — see <a class="link" href="/configuration.html">Configuration</a>.</p>
+
+    <h2>Where to go next</h2>
+    <div class="cards">
+      <a class="card" href="/routing.html">
+        <b>How routing works</b>
+        <span>Difficulty scoring, the three tiers, and how savings are measured.</span>
+      </a>
+      <a class="card" href="/execution-graphs.html">
+        <b>Execution graphs</b>
+        <span>Record a DAG of every LLM call and step, then resume a failed one.</span>
+      </a>
+      <a class="card" href="/telemetry.html">
+        <b>Telemetry &amp; privacy</b>
+        <span>What leaves the process, what never does, and how to turn it off.</span>
+      </a>
+      <a class="card" href="/examples.html">
+        <b>Examples</b>
+        <span>Two notebooks: a five-minute quickstart and a full walkthrough.</span>
+      </a>
+    </div>
+
+    <div class="pagenav">
+      <span></span>
+      <a href="/routing.html"><span class="lbl">Next</span>How routing works →</a>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <div class="inner">
+    <span>FluxCompute · Apache-2.0</span>
+    <div class="flinks">
+      <a href="https://fluxcompute.dev">fluxcompute.dev</a>
+      <a href="https://github.com/fluxcompute/fluxcompute-sdk">GitHub</a>
+      <a href="https://pypi.org/project/fluxcompute/">PyPI</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

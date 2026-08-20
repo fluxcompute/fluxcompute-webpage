@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Examples · FluxCompute docs</title>
+<meta name="description" content="Runnable notebooks for the FluxCompute SDK: a five-minute quickstart that measures real savings, and a full walkthrough of routing tiers, sessions, and streaming."/>
+<link rel="canonical" href="https://docs.fluxcompute.dev/examples.html"/>
+<link rel="icon" href="/favicon.ico" sizes="any"/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png"/>
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/tokens.css"/>
+<link rel="stylesheet" href="/docs.css"/>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<nav class="top">
+  <a class="lockup" href="/">
+    <svg width="30" height="24" viewBox="0 0 36 30" aria-hidden="true">
+      <defs>
+        <linearGradient id="nav-flux" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#2fe6a8"/><stop offset="100%" stop-color="#aef7dc"/>
+        </linearGradient>
+      </defs>
+      <path d="M 3 25 C 9 25, 11 5, 17 5 C 23 5, 25 25, 31 25" fill="none" stroke="url(#nav-flux)" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="3" cy="25" r="2.5" fill="#2fe6a8"/>
+      <circle cx="17" cy="5" r="2.5" fill="url(#nav-flux)"/>
+      <circle cx="31" cy="25" r="2.5" fill="#aef7dc"/>
+    </svg>
+    <b>FluxCompute</b><span class="tag">Docs</span>
+  </a>
+  <div class="links">
+    <a class="hide-sm" href="https://fluxcompute.dev">Home</a>
+    <a href="https://github.com/fluxcompute/fluxcompute-sdk">GitHub</a>
+    <a class="hide-sm" href="https://pypi.org/project/fluxcompute/">PyPI</a>
+  </div>
+</nav>
+
+<div class="shell">
+  <aside class="side">
+    <p class="grp">SDK</p>
+    <ul>
+      <li><a href="/">Introduction</a></li>
+      <li><a href="/routing.html">How routing works</a></li>
+      <li><a href="/execution-graphs.html">Execution graphs</a></li>
+      <li><a href="/telemetry.html">Telemetry &amp; privacy</a></li>
+      <li><a href="/configuration.html">Configuration</a></li>
+      <li><a href="/examples.html" aria-current="page">Examples</a></li>
+    </ul>
+  </aside>
+
+  <main id="main">
+    <p class="eyebrow">Examples</p>
+    <h1>Examples</h1>
+    <p class="lede">Two runnable notebooks in the SDK repository. Both measure savings on real
+      traffic rather than asserting a number.</p>
+
+    <div class="cards">
+      <a class="card" href="https://github.com/fluxcompute/fluxcompute-sdk/blob/main/examples/quickstart.ipynb">
+        <b>quickstart.ipynb</b>
+        <span>First routed call and measured savings, ~5 minutes.</span>
+      </a>
+      <a class="card" href="https://github.com/fluxcompute/fluxcompute-sdk/blob/main/examples/full_walkthrough.ipynb">
+        <b>full_walkthrough.ipynb</b>
+        <span>Routing tiers, sessions, streaming, and migrating from the Anthropic SDK.</span>
+      </a>
+    </div>
+
+    <h2>Running them</h2>
+    <div class="term">
+      <div class="bar"><i></i><i></i><i></i><span>shell</span></div>
+<pre>git clone https://github.com/fluxcompute/fluxcompute-sdk.git
+<span class="kw">cd</span> fluxcompute-sdk
+pip install -e <span class="str">".[dev]"</span>
+<span class="kw">export</span> ANTHROPIC_API_KEY=sk-ant-...
+jupyter notebook examples/quickstart.ipynb</pre>
+    </div>
+
+    <h2>Development</h2>
+    <p>If you're working on the SDK itself:</p>
+    <div class="term">
+      <div class="bar"><i></i><i></i><i></i><span>shell</span></div>
+<pre>pip install -e <span class="str">".[dev]"</span>
+ruff check fluxcompute/
+pytest tests/ -v</pre>
+    </div>
+    <p>We don't take external code contributions, but bug reports are genuinely useful — see
+      <a class="link" href="https://github.com/fluxcompute/fluxcompute-sdk/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>.
+      Security issues go to <a class="link" href="mailto:security@fluxcompute.dev">security@fluxcompute.dev</a>.</p>
+
+    <h2>License</h2>
+    <p>Apache-2.0 — see
+      <a class="link" href="https://github.com/fluxcompute/fluxcompute-sdk/blob/main/LICENSE">LICENSE</a>.
+      Versions 0.1.0–0.2.1 were released under MIT and remain so.</p>
+
+    <div class="pagenav">
+      <a href="/configuration.html"><span class="lbl">Previous</span>← Configuration</a>
+      <span></span>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <div class="inner">
+    <span>FluxCompute · Apache-2.0</span>
+    <div class="flinks">
+      <a href="https://fluxcompute.dev">fluxcompute.dev</a>
+      <a href="https://github.com/fluxcompute/fluxcompute-sdk">GitHub</a>
+      <a href="https://pypi.org/project/fluxcompute/">PyPI</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

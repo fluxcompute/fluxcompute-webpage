@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>How routing works · FluxCompute docs</title>
+<meta name="description" content="How FluxCompute scores query difficulty, maps the score to a model tier, and measures savings against your baseline model."/>
+<link rel="canonical" href="https://docs.fluxcompute.dev/routing.html"/>
+<link rel="icon" href="/favicon.ico" sizes="any"/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png"/>
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/tokens.css"/>
+<link rel="stylesheet" href="/docs.css"/>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<nav class="top">
+  <a class="lockup" href="/">
+    <svg width="30" height="24" viewBox="0 0 36 30" aria-hidden="true">
+      <defs>
+        <linearGradient id="nav-flux" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#2fe6a8"/><stop offset="100%" stop-color="#aef7dc"/>
+        </linearGradient>
+      </defs>
+      <path d="M 3 25 C 9 25, 11 5, 17 5 C 23 5, 25 25, 31 25" fill="none" stroke="url(#nav-flux)" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="3" cy="25" r="2.5" fill="#2fe6a8"/>
+      <circle cx="17" cy="5" r="2.5" fill="url(#nav-flux)"/>
+      <circle cx="31" cy="25" r="2.5" fill="#aef7dc"/>
+    </svg>
+    <b>FluxCompute</b><span class="tag">Docs</span>
+  </a>
+  <div class="links">
+    <a class="hide-sm" href="https://fluxcompute.dev">Home</a>
+    <a href="https://github.com/fluxcompute/fluxcompute-sdk">GitHub</a>
+    <a class="hide-sm" href="https://pypi.org/project/fluxcompute/">PyPI</a>
+  </div>
+</nav>
+
+<div class="shell">
+  <aside class="side">
+    <p class="grp">SDK</p>
+    <ul>
+      <li><a href="/">Introduction</a></li>
+      <li><a href="/routing.html" aria-current="page">How routing works</a></li>
+      <li><a href="/execution-graphs.html">Execution graphs</a></li>
+      <li><a href="/telemetry.html">Telemetry &amp; privacy</a></li>
+      <li><a href="/configuration.html">Configuration</a></li>
+      <li><a href="/examples.html">Examples</a></li>
+    </ul>
+  </aside>
+
+  <main id="main">
+    <p class="eyebrow">Routing</p>
+    <h1>How routing works</h1>
+    <p class="lede">Each request gets a difficulty score from a heuristic classifier — prompt
+      structure, reasoning markers, length, task type — and that score maps to a tier.</p>
+
+    <h2>Tiers</h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Score</th><th>Tier</th><th>Anthropic</th><th>OpenAI</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>&lt; 0.18</code></td><td>easy</td><td><code>claude-haiku-4-5-20251001</code></td><td><code>gpt-4o-mini</code></td></tr>
+          <tr><td><code>0.18</code> – <code>0.45</code></td><td>medium</td><td><code>claude-sonnet-4-6</code></td><td><code>gpt-4o</code></td></tr>
+          <tr><td><code>&gt;= 0.45</code></td><td>hard</td><td><code>claude-opus-4-8</code></td><td><code>o1</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>What you actually save</h2>
+    <p>Savings come from the queries that get downgraded. Against the default baseline, an
+      easy-tier call costs <strong>80% less</strong> and a medium-tier call <strong>40% less</strong>.
+      Hard queries route to the baseline model itself, so they save nothing by design.</p>
+    <p>Your overall reduction is therefore a function of how much of your traffic genuinely needs a
+      frontier model. The <a class="link" href="/examples.html">example notebooks</a> measure this on
+      a mixed workload rather than asserting a number.</p>
+
+    <h2>Auditable, not a black box</h2>
+    <p>Every response carries the score, the label, the model chosen, and the counterfactual cost
+      against your baseline model:</p>
+    <div class="term">
+      <div class="bar"><i></i><i></i><i></i><span>python</span></div>
+<pre>response = <span class="kw">await</span> client.messages.create(
+    model=<span class="str">"auto"</span>,
+    messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"Summarise this changelog entry."</span>}],
+)
+
+meta = response.fluxcompute
+<span class="kw">print</span>(meta.difficulty_score)      <span class="cm"># 0.12</span>
+<span class="kw">print</span>(meta.difficulty_label)      <span class="cm"># "easy"</span>
+<span class="kw">print</span>(meta.model_selected)        <span class="cm"># the model actually dispatched to</span>
+<span class="kw">print</span>(meta.baseline_model)        <span class="cm"># what savings are measured against</span>
+<span class="kw">print</span>(meta.cost_usd, meta.baseline_cost_usd, meta.savings_usd)</pre>
+    </div>
+    <p>Pin a specific model any time by passing it instead of <code>"auto"</code> — the cost
+      accounting still runs, so you keep the comparison.</p>
+
+    <h2>Multi-turn sessions</h2>
+    <p>Sessions get tier-aware context compression. Pass a <code>session_id</code> and history is
+      carried across turns and compressed when a session drops to a cheaper tier, so switching
+      models mid-conversation doesn't re-bill the full transcript.</p>
+    <div class="term">
+      <div class="bar"><i></i><i></i><i></i><span>python</span></div>
+<pre><span class="kw">await</span> client.messages.create(
+    model=<span class="str">"auto"</span>,
+    messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: <span class="str">"And the second one?"</span>}],
+    session_id=<span class="str">"support-thread-4131"</span>,
+)</pre>
+    </div>
+
+    <div class="pagenav">
+      <a href="/"><span class="lbl">Previous</span>← Introduction</a>
+      <a href="/execution-graphs.html"><span class="lbl">Next</span>Execution graphs →</a>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <div class="inner">
+    <span>FluxCompute · Apache-2.0</span>
+    <div class="flinks">
+      <a href="https://fluxcompute.dev">fluxcompute.dev</a>
+      <a href="https://github.com/fluxcompute/fluxcompute-sdk">GitHub</a>
+      <a href="https://pypi.org/project/fluxcompute/">PyPI</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

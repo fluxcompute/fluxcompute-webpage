@@ -1,0 +1,192 @@
+/* FluxCompute docs — layout on top of tokens.css.
+   Colors, type, spacing and radius all come from tokens.css. Nothing new here. */
+
+a { color: inherit; text-decoration: none; }
+img, svg { max-width: 100%; }
+
+.skip {
+  position: absolute; left: -9999px;
+  background: var(--bg-2); color: var(--fg-0);
+  padding: var(--s-3) var(--s-4); border-radius: var(--r-2); z-index: 100;
+}
+.skip:focus { left: var(--s-4); top: var(--s-4); }
+
+/* ---- top nav ---- */
+nav.top {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+  padding: var(--s-3) var(--s-5);
+  background: color-mix(in srgb, var(--bg-0) 78%, transparent);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line-1);
+}
+nav.top .lockup { display: flex; align-items: center; gap: var(--s-2); min-width: 0; }
+nav.top .lockup b { font-size: 15px; font-weight: 650; letter-spacing: var(--tracking-tight); white-space: nowrap; }
+nav.top .lockup .tag {
+  font: 500 10px/1 var(--font-mono); letter-spacing: var(--tracking-mono);
+  color: var(--accent); text-transform: uppercase;
+  border: 1px solid var(--line-2); border-radius: var(--r-1);
+  padding: 4px 6px; margin-left: var(--s-2);
+}
+nav.top .links { display: flex; gap: var(--s-5); font-size: var(--text-sm); color: var(--fg-1); }
+nav.top .links a:hover { color: var(--fg-0); }
+@media (max-width: 720px) { nav.top .links a.hide-sm { display: none; } }
+
+/* ---- shell ---- */
+.shell {
+  max-width: 1160px; margin: 0 auto; padding: 0 var(--s-5);
+  display: grid; grid-template-columns: 208px minmax(0, 1fr); gap: var(--s-8);
+  align-items: start;
+}
+@media (max-width: 880px) { .shell { grid-template-columns: 1fr; gap: var(--s-5); } }
+
+/* ---- sidebar ---- */
+.side { position: sticky; top: 84px; padding: var(--s-8) 0 var(--s-6); }
+@media (max-width: 880px) {
+  .side { position: static; padding: var(--s-6) 0 0; border-bottom: 1px solid var(--line-1); }
+}
+.side .grp {
+  font: 500 11px/1 var(--font-mono); letter-spacing: var(--tracking-mono);
+  color: var(--fg-2); text-transform: uppercase; margin: 0 0 var(--s-4);
+}
+.side ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+@media (max-width: 880px) { .side ul { flex-direction: row; flex-wrap: wrap; gap: var(--s-2); } }
+.side a {
+  display: block; padding: 7px var(--s-3);
+  font-size: var(--text-sm); color: var(--fg-1);
+  border-left: 1px solid var(--line-1); border-radius: 0 var(--r-1) var(--r-1) 0;
+}
+.side a:hover { color: var(--fg-0); background: var(--bg-1); }
+.side a[aria-current="page"] { color: var(--accent); border-left-color: var(--accent); background: var(--accent-dim); }
+@media (max-width: 880px) {
+  .side a { border-left: 1px solid var(--line-2); border-radius: var(--r-2); }
+}
+
+/* ---- content ---- */
+main { padding: var(--s-8) 0 var(--s-9); min-width: 0; max-width: 760px; }
+.eyebrow {
+  display: flex; align-items: center; gap: var(--s-2);
+  font: 500 11px/1 var(--font-mono); letter-spacing: var(--tracking-mono);
+  color: var(--accent); text-transform: uppercase; margin-bottom: var(--s-4);
+}
+.eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--accent); opacity: .6; }
+
+main h1 {
+  margin: 0 0 var(--s-4);
+  font: 650 var(--text-2xl)/1.12 var(--font-sans); letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+}
+main h2 {
+  margin: var(--s-8) 0 var(--s-3);
+  font: 650 var(--text-xl)/1.2 var(--font-sans); letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+main h3 {
+  margin: var(--s-6) 0 var(--s-3);
+  font: 600 var(--text-md)/1.3 var(--font-sans); letter-spacing: var(--tracking-tight);
+}
+main p { margin: 0 0 var(--s-4); color: var(--fg-1); line-height: var(--leading-body); text-wrap: pretty; }
+main .lede { color: var(--fg-0); font-size: var(--text-lg); line-height: 1.55; margin-bottom: var(--s-6); }
+main strong { color: var(--ok-text); font-weight: 550; }
+main a.link { color: var(--accent); border-bottom: 1px solid var(--accent-dim); }
+main a.link:hover { border-bottom-color: var(--accent); }
+
+main ul, main ol { margin: 0 0 var(--s-4); padding-left: var(--s-5); color: var(--fg-1); line-height: var(--leading-body); }
+main li { margin-bottom: var(--s-2); text-wrap: pretty; }
+main li::marker { color: var(--fg-2); }
+
+/* inline code — mono, per the type rules */
+main :not(pre) > code {
+  font: 500 .88em var(--font-mono); color: var(--ok-text);
+  background: var(--bg-2); border: 1px solid var(--line-1);
+  border-radius: var(--r-1); padding: 2px 5px;
+}
+
+/* ---- code blocks: the landing page's terminal treatment ---- */
+.term {
+  border: 1px solid var(--line-1); border-radius: var(--r-3);
+  background: var(--bg-1); overflow: hidden; margin: 0 0 var(--s-5);
+}
+.term .bar {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 14px; background: var(--bg-2); border-bottom: 1px solid var(--line-1);
+}
+.term .bar i { width: 9px; height: 9px; border-radius: 50%; background: #272b34; }
+.term .bar span { margin-left: 10px; font: 11px var(--font-mono); color: var(--fg-2); }
+.term pre { margin: 0; padding: var(--s-5); font: 13.5px/1.8 var(--font-mono); color: var(--fg-1); overflow-x: auto; }
+.term .kw { color: var(--accent); }
+.term .str { color: var(--ok-text); }
+.term .cm { color: var(--fg-2); }
+
+/* ---- tables ---- */
+.tbl-wrap { overflow-x: auto; margin: 0 0 var(--s-5); }
+table { border-collapse: collapse; width: 100%; font-size: var(--text-sm); }
+th, td {
+  text-align: left; padding: 10px var(--s-3);
+  border-bottom: 1px solid var(--line-1); vertical-align: top;
+}
+th {
+  font: 500 11px/1 var(--font-mono); letter-spacing: var(--tracking-mono);
+  color: var(--fg-2); text-transform: uppercase; white-space: nowrap;
+}
+td { color: var(--fg-1); line-height: 1.55; }
+td code { white-space: nowrap; }
+
+/* ---- note callout ---- */
+.note {
+  border: 1px solid var(--line-2); border-left: 2px solid var(--accent);
+  border-radius: 0 var(--r-3) var(--r-3) 0;
+  background: var(--bg-1); padding: var(--s-4) var(--s-5);
+  margin: 0 0 var(--s-5);
+}
+.note .lbl {
+  font: 500 11px/1 var(--font-mono); letter-spacing: var(--tracking-mono);
+  color: var(--accent); text-transform: uppercase; display: block; margin-bottom: var(--s-3);
+}
+.note p:last-child { margin-bottom: 0; }
+
+/* ---- cards / next links ---- */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--s-3); margin: 0 0 var(--s-5); }
+.card {
+  display: block; border: 1px solid var(--line-1); border-radius: var(--r-3);
+  background: var(--bg-1); padding: var(--s-4) var(--s-5);
+  transition: border-color .15s, transform .15s;
+}
+.card:hover { border-color: var(--line-2); transform: translateY(-1px); }
+.card b { display: block; font-size: var(--text-sm); font-weight: 650; margin-bottom: 5px; }
+.card span { font-size: var(--text-sm); color: var(--fg-2); line-height: 1.5; }
+
+/* ---- buttons ---- */
+.btn {
+  display: inline-flex; align-items: center; gap: var(--s-2); border-radius: var(--r-2);
+  font-size: var(--text-sm); font-weight: 650; padding: 11px 18px;
+  transition: transform .15s, box-shadow .15s;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn-flux { color: #0a0b0e; background: var(--accent-grad); box-shadow: 0 0 24px var(--accent-dim); }
+.btn-ghost { color: var(--fg-1); border: 1px solid var(--line-2); }
+.btn-ghost:hover { color: var(--fg-0); border-color: var(--fg-2); }
+.btn-row { display: flex; gap: var(--s-3); flex-wrap: wrap; margin: 0 0 var(--s-6); }
+
+/* ---- page nav ---- */
+.pagenav {
+  display: flex; justify-content: space-between; gap: var(--s-4);
+  margin-top: var(--s-8); padding-top: var(--s-5);
+  border-top: 1px solid var(--line-1); font-size: var(--text-sm);
+}
+.pagenav a { color: var(--fg-1); }
+.pagenav a:hover { color: var(--accent); }
+.pagenav .lbl { display: block; font: 500 10px/1 var(--font-mono); letter-spacing: var(--tracking-mono); color: var(--fg-2); text-transform: uppercase; margin-bottom: 6px; }
+
+/* ---- footer ---- */
+footer {
+  border-top: 1px solid var(--line-1); margin-top: var(--s-6);
+  padding: var(--s-7) var(--s-5); color: var(--fg-2); font-size: var(--text-sm);
+}
+footer .inner { max-width: 1160px; margin: 0 auto; display: flex; justify-content: space-between; gap: var(--s-5); flex-wrap: wrap; }
+footer a:hover { color: var(--fg-0); }
+footer .flinks { display: flex; gap: var(--s-5); }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn:hover, .card:hover { transform: none; }
+}
