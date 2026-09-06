@@ -58,8 +58,8 @@
   <main id="main" tabindex="-1">
     <p class="eyebrow">Routing</p>
     <h1>How routing works</h1>
-    <p class="lede">Each request gets a difficulty score from a heuristic classifier — prompt
-      structure, reasoning markers, length, task type — and that score maps to a tier.</p>
+    <p class="lede">Each request gets a difficulty score from a heuristic classifier weighing prompt
+      structure, reasoning markers, length, and task type, and that score maps to a tier.</p>
 
     <h2>Tiers</h2>
     <div class="tbl-wrap">
@@ -77,7 +77,7 @@
 
     <h2>What you actually save</h2>
     <p>Savings come from the queries that get downgraded. Hard queries route to the baseline model
-      itself, so they save nothing by design — the reduction comes entirely from the tiers below it.
+      itself, so they save nothing by design: the reduction comes entirely from the tiers below it.
       How much depends on your provider, because the baseline differs:</p>
     <div class="tbl-wrap">
       <table>
@@ -109,7 +109,7 @@ meta = response.fluxcompute
 <span class="kw">print</span>(meta.baseline_model)        <span class="cm"># what savings are measured against</span>
 <span class="kw">print</span>(meta.cost_usd, meta.baseline_cost_usd, meta.savings_usd)</pre>
     </div>
-    <p>Pin a specific model any time by passing it instead of <code>"auto"</code> — the cost
+    <p>Pin a specific model any time by passing it instead of <code>"auto"</code>. The cost
       accounting still runs, so you keep the comparison.</p>
 
     <h2>Multi-turn sessions</h2>

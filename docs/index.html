@@ -58,8 +58,8 @@
   <main id="main" tabindex="-1">
     <p class="eyebrow">FluxCompute SDK</p>
     <h1>Route every query to the cheapest model that can answer it</h1>
-    <p class="lede">FluxCompute classifies each request and dispatches it to the right tier — so
-      simple questions stop costing frontier-model prices — and reports exactly what you saved on
+    <p class="lede">FluxCompute classifies each request and dispatches it to the right tier, so
+      simple questions stop costing frontier-model prices, and reports exactly what you saved on
       every call.</p>
 
     <div class="btn-row">
@@ -73,7 +73,7 @@
 <pre>pip install fluxcompute</pre>
     </div>
     <p>Python 3.10 or newer. The SDK is Apache-2.0 licensed and has no FluxCompute account
-      requirement — routing and savings accounting work entirely against your own provider keys.</p>
+      requirement: routing and savings accounting work entirely against your own provider keys.</p>
 
     <h2>Your first routed call</h2>
     <div class="term">
@@ -105,7 +105,7 @@ asyncio.run(main())</pre>
       already use, with routing and cost data added under <code>response.fluxcompute</code>. Pin a
       specific model any time by passing it instead of <code>"auto"</code>.</p>
     <p>Keys are read from the environment when not passed explicitly, matching the provider SDK
-      conventions — see <a class="link" href="/configuration.html">Configuration</a>.</p>
+      conventions. See <a class="link" href="/configuration.html">Configuration</a>.</p>
 
     <h2>Where to go next</h2>
     <div class="cards">
