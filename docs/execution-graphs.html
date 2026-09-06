@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Execution graphs · FluxCompute docs</title>
-<meta name="description" content="Wrap work in a task() scope and the FluxCompute SDK records a DAG of every LLM call and step, with status, timings, cost, and failure classification — then resume the step that failed."/>
+<meta name="description" content="Wrap work in a task() scope and the FluxCompute SDK records a DAG of every LLM call and step, with status, timings, cost, and failure classification, then resume the step that failed."/>
 <link rel="canonical" href="https://docs.fluxcompute.dev/execution-graphs.html"/>
 <link rel="icon" href="/favicon.ico" sizes="any"/>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
@@ -59,7 +59,7 @@
     <p class="eyebrow">Execution graphs</p>
     <h1>Execution graphs</h1>
     <p class="lede">Wrap work in a <code>task()</code> scope and the SDK records a DAG of everything
-      that happened inside it — LLM calls and your own steps, auto-parented, with status, timings,
+      that happened inside it: LLM calls and your own steps, auto-parented, with status, timings,
       tokens, cost, and a rules-based failure classification.</p>
 
     <div class="term">
@@ -77,7 +77,7 @@
         <span class="kw">except</span> TimeoutError:
             <span class="kw">pass</span>  <span class="cm"># a step can fail without killing the whole task</span>
 
-    <span class="cm"># Re-runs only the failed step, with a rebuilt minimal context — not a</span>
+    <span class="cm"># Re-runs only the failed step, with a rebuilt minimal context, not a</span>
     <span class="cm"># replay of the whole transcript. The retry lands in the same graph,</span>
     <span class="cm"># linked to the node it replaces via depends_on.</span>
     response = <span class="kw">await</span> client.resume(t.task_id)
@@ -85,7 +85,7 @@
     <span class="kw">return</span> client.get_task_graph(t.task_id)</pre>
     </div>
 
-    <p>It works in any framework — no integration code — because parenting uses context variables
+    <p>It works in any framework, with no integration code, because parenting uses context variables
       rather than a wrapper API.</p>
 
     <h2>Failure classification</h2>
@@ -96,9 +96,9 @@
         <thead><tr><th>Reason</th><th>Meaning</th></tr></thead>
         <tbody>
           <tr><td><code>context_overflow</code></td><td>The request exceeded the model's context window</td></tr>
-          <tr><td><code>budget</code></td><td>A provider rate-limit, quota, or billing error — an HTTP 429 lands here</td></tr>
+          <tr><td><code>budget</code></td><td>A provider rate-limit, quota, or billing error: an HTTP 429 lands here</td></tr>
           <tr><td><code>tool_error</code></td><td>A tool or step raised</td></tr>
-          <tr><td><code>stall</code></td><td>Three consecutive failed same-name siblings — a retry loop</td></tr>
+          <tr><td><code>stall</code></td><td>Three consecutive failed same-name siblings: a retry loop</td></tr>
           <tr><td><code>refusal</code></td><td>The model declined to answer</td></tr>
           <tr><td><code>unknown</code></td><td>Nothing matched</td></tr>
         </tbody>
@@ -115,12 +115,12 @@
 
 app = graph.compile(checkpointer=FluxCheckpointer(flux_client))</pre>
     </div>
-    <p>The adapter requires LangGraph itself — <code>pip install langgraph</code>.</p>
+    <p>The adapter requires LangGraph itself: <code>pip install langgraph</code>.</p>
     <div class="note">
       <span class="lbl">Known limitation</span>
       <p>The adapter mirrors only <strong>successful</strong> checkpoint writes. When a LangGraph
         node raises, LangGraph never calls <code>put()</code>/<code>aput()</code> for that step, so
-        the adapter has no hook to observe the failure and it is never recorded in the task graph —
+        the adapter has no hook to observe the failure and it is never recorded in the task graph,
         including the failure reasons above. If you need failure visibility for a failure-prone
         node, wrap that node's body in <code>client.step()</code> directly; its auto-parenting works
         fine alongside <code>FluxCheckpointer</code>.</p>

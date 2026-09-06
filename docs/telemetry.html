@@ -63,7 +63,7 @@
 
     <div class="note">
       <span class="lbl">Early access</span>
-      <p>The hosted FluxCompute dashboard is in invite-only early access — the public telemetry
+      <p>The hosted FluxCompute dashboard is in invite-only early access: the public telemetry
         endpoint is not yet generally available, and without a reachable endpoint the SDK's
         telemetry is a silent no-op (it never delays or fails your LLM calls). Self-hosted and dev
         deployments can point the SDK anywhere via <code>FLUX_TELEMETRY_URL</code> /
@@ -76,13 +76,13 @@
     <ul>
       <li>routing decisions, difficulty scores, token counts, cost, latency</li>
       <li>execution-graph <strong>structure</strong>: node names, types, parentage, status, failure
-        reason, model, timings — and error strings, which are diagnostics</li>
+        reason, model, timings, and error strings, which are diagnostics</li>
     </ul>
     <p>Provider API keys are never transmitted.</p>
 
     <h2>Opting in to content</h2>
-    <p>To include model output in the dashboard — a 500-character preview per node, plus full
-      prompt/output snapshots for failed nodes — opt in explicitly:</p>
+    <p>To include model output in the dashboard (a 500-character preview per node, plus full
+      prompt/output snapshots for failed nodes), opt in explicitly:</p>
     <div class="term">
       <div class="bar"><i></i><i></i><i></i><span>python</span></div>
 <pre>client = FluxClient(anthropic_key=<span class="str">"..."</span>, fluxcompute_key=<span class="str">"flx_..."</span>,
@@ -97,7 +97,7 @@
 
     <h2>The two channels</h2>
     <p>Both are batched and fire-and-forget, and neither can delay or fail an LLM call. Failures are
-      never raised to the caller — but the two failure modes differ: a transport error re-buffers
+      never raised to the caller. The two failure modes differ, though: a transport error re-buffers
       the batch for a later flush, while a non-200 response is logged and that batch is
       <strong>dropped</strong>.</p>
     <div class="tbl-wrap">
@@ -110,7 +110,7 @@
         </tbody>
       </table>
     </div>
-    <p>The full wire format — every field, batching behaviour, and the versioning rules — is
+    <p>The full wire format (every field, batching behaviour, and the versioning rules) is
       documented in
       <a class="link" href="https://github.com/fluxcompute/fluxcompute-sdk/blob/main/docs/telemetry-contract.md">docs/telemetry-contract.md</a>.</p>
 
@@ -131,7 +131,7 @@
         <thead><tr><th>Variable</th><th>Effect</th></tr></thead>
         <tbody>
           <tr><td><code>FLUX_TELEMETRY_URL</code></td><td>Sets the telemetry endpoint. Highest precedence</td></tr>
-          <tr><td><code>FLUX_GRAPH_EVENTS_URL</code></td><td>Sets the graph-events endpoint — and, if <code>FLUX_TELEMETRY_URL</code> is unset, the telemetry endpoint's host is derived from it, as is <code>/v1/whoami</code></td></tr>
+          <tr><td><code>FLUX_GRAPH_EVENTS_URL</code></td><td>Sets the graph-events endpoint. If <code>FLUX_TELEMETRY_URL</code> is unset, the telemetry endpoint's host is derived from it, as is <code>/v1/whoami</code></td></tr>
         </tbody>
       </table>
     </div>
