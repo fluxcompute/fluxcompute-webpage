@@ -62,6 +62,21 @@ else
     want "$DOCS/$p.html" 200 "/$p.html"
   done
   want "$DOCS/tokens.css" 200 "/tokens.css (shared asset resolves)"
+
+  echo
+  echo "5. Docs content conventions"
+  # The site convention is no em dashes; that pass was once hand-applied to the live pages
+  # and later committed, so codify it here to keep it from regressing on a redeploy.
+  for p in index routing execution-graphs telemetry configuration examples; do
+    n=$(body "$DOCS/$p.html" | grep -c '—')
+    [ "$n" = 0 ] && ok "/$p.html has no em dashes" || bad "/$p.html has $n line(s) with an em dash"
+  done
+  ex=$(body "$DOCS/examples.html")
+  if echo "$ex" | grep -q 'id="company-brain"' && echo "$ex" | grep -q 'id="crm-inbox"'; then
+    ok "/examples.html carries both worked-agent anchors"
+  else
+    bad "/examples.html is missing a worked-agent anchor (#company-brain, #crm-inbox)"
+  fi
 fi
 
 echo

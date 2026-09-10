@@ -129,7 +129,9 @@ app = graph.compile(checkpointer=FluxCheckpointer(flux_client))</pre>
     <h2>Resume, and what durability costs</h2>
     <p>Recording and resume are both <strong>free and fully offline</strong>.
       <code>client.resume()</code> works whenever the process that ran the task still holds its
-      graph, with no network call beyond the provider request itself.</p>
+      graph, with no network call beyond the provider request itself. For a worked run, the
+      <a class="link" href="/examples.html#company-brain">company brain example</a> injects a
+      retired model id at one step and resumes exactly that call in the same graph.</p>
     <div class="note">
       <span class="lbl">What's paid</span>
       <p>Durability. If the process that ran the task has since exited, resuming means
