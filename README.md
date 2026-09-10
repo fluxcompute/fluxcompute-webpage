@@ -60,13 +60,14 @@ This repo backs **two Vercel projects**:
 | `fluxcompute.dev` | repo root | `index.html` |
 | `docs.fluxcompute.dev` | `docs/` | `docs/index.html` and siblings |
 
-**Deploys appear to be manual, not Git-triggered.** As of 2026-08-20 the repo
-has no GitHub deployment records, no PR checks and no Vercel bot comments, and
-the live build was dated 18 days after the last commit on `main` — which is
-what a `vercel --prod` or a dashboard Redeploy looks like, not a push hook.
-**Merging to `main` therefore does not ship anything by itself.** Confirm in
-Vercel → project → Deployments: a Git-connected deploy names a branch and
-commit in the Source column; a manual one says CLI or a username.
+**Both Vercel projects are Git-connected (confirmed 2026-09-10).** GitHub holds
+deployment records for `fluxcompute` and `fluxcompute-docs` from 2026-09-04
+onward: every merge to `main` produces a Production deployment for both, and
+every pull request gets a Preview deployment on its head commit. So
+**merging to `main` ships.** The 2026-08-20 finding that deploys were manual
+predates the repo cutover (`ea1c7ad`) and no longer holds. If in doubt, check
+`gh api repos/fluxcompute/fluxcompute-webpage/deployments` or the Deployments
+tab; the manual commands below remain valid for an out-of-band redeploy.
 
 To deploy manually:
 
