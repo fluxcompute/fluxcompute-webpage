@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Examples · FluxCompute docs</title>
-<meta name="description" content="Runnable notebooks for the FluxCompute SDK: a five-minute quickstart that measures real savings, and a full walkthrough of routing tiers, sessions, and streaming."/>
+<meta name="description" content="Runnable examples for the FluxCompute SDK: two notebooks that measure real savings, and two complete agents, a company brain and a CRM inbox, with recorded runs and the one pattern from each worth copying."/>
 <link rel="canonical" href="https://docs.fluxcompute.dev/examples.html"/>
 <link rel="icon" href="/favicon.ico" sizes="any"/>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
@@ -58,9 +58,10 @@
   <main id="main" tabindex="-1">
     <p class="eyebrow">Examples</p>
     <h1>Examples</h1>
-    <p class="lede">Two runnable notebooks in the SDK repository. Both measure savings on real
-      traffic rather than asserting a number.</p>
+    <p class="lede">Two notebooks and two complete agents in the SDK repository. All of them measure
+      on real traffic rather than asserting a number, and the agents also run a $0 test suite in CI.</p>
 
+    <h2>Notebooks</h2>
     <div class="cards">
       <a class="card" href="https://github.com/fluxcompute/fluxcompute-sdk/blob/main/examples/quickstart.ipynb">
         <b>quickstart.ipynb</b>
@@ -71,8 +72,6 @@
         <span>Routing tiers, sessions, streaming, and migrating from the Anthropic SDK.</span>
       </a>
     </div>
-
-    <h2>Running them</h2>
     <div class="term">
       <div class="bar"><i></i><i></i><i></i><span>shell</span></div>
 <pre>git clone https://github.com/fluxcompute/fluxcompute-sdk.git
@@ -83,12 +82,122 @@ pip install jupyter                 <span class="cm"># not in the dev extra</spa
 jupyter notebook examples/quickstart.ipynb</pre>
     </div>
 
+    <h2>Worked agents</h2>
+    <p>Two complete programs, not snippets. Each keeps its own state in SQLite, records every call
+      and step in an execution graph, and ends with a scorecard of gates. They share one rule:
+      <strong>a model does one bounded job, and code decides everything with a consequence</strong>.
+      Only a provider key is needed. A <code>FLUXCOMPUTE_KEY</code> is optional and adds one line,
+      the dashboard link. The company in the fixtures is fictional.</p>
+    <div class="term">
+      <div class="bar"><i></i><i></i><i></i><span>shell</span></div>
+<pre>git clone https://github.com/fluxcompute/fluxcompute-sdk.git
+<span class="kw">cd</span> fluxcompute-sdk
+pip install -e <span class="str">".[examples]"</span>
+<span class="kw">export</span> ANTHROPIC_API_KEY=sk-ant-...
+python examples/agents/company_brain/run.py
+python examples/agents/crm_inbox/run.py</pre>
+    </div>
+    <div class="cards">
+      <a class="card" href="https://github.com/fluxcompute/fluxcompute-sdk/tree/main/examples/agents/company_brain">
+        <b>company_brain/</b>
+        <span>A document kept in sync with its sources, including removals. An unchanged run costs nothing.</span>
+      </a>
+      <a class="card" href="https://github.com/fluxcompute/fluxcompute-sdk/tree/main/examples/agents/crm_inbox">
+        <b>crm_inbox/</b>
+        <span>One CRM row per conversation. Deterministic gates, idempotent writes, erasure.</span>
+      </a>
+    </div>
+
+    <h3 id="company-brain">Company brain</h3>
+    <p>One versioned document assembled from a repository snapshot, an inbox and a brand file, with a
+      verbatim quote behind every fact and facts removed when their source stops asserting them. The
+      model turns a paragraph into typed facts; code decides what changed, which source wins, what to
+      remove and what to publish. The injected failure is a retired model id, and
+      <code>resume()</code> fixes it in the same graph.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Run</th><th>LLM calls</th><th>Tiers</th><th>Cost</th><th>Outcome</th></tr></thead>
+        <tbody>
+          <tr><td><code>run.py</code></td><td><code>17</code></td><td>easy <code>17</code></td><td><code>$0.0226</code></td><td>32 facts, 21 of 21 golden answers, 42 nodes recorded</td></tr>
+          <tr><td><code>--version 2</code></td><td><code>10</code></td><td>easy <code>10</code></td><td><code>$0.0123</code></td><td>1 added, 3 updated, 3 removed, 1 rename carried</td></tr>
+          <tr><td><code>--version 2</code> again</td><td><code>0</code></td><td>none</td><td><code>$0.0000</code></td><td>4 facts retired after their grace period</td></tr>
+          <tr><td><code>--fail-at 2</code></td><td><code>1</code> + 1 retry</td><td>easy, then medium</td><td><code>$0.0048</code> retry</td><td>one failed call resumed in-process, 15 never reached, exit 1</td></tr>
+          <tr><td><code>--resume &lt;task&gt;</code></td><td><code>15</code></td><td>easy <code>15</code></td><td><code>$0.0187</code></td><td>32 facts, 21 of 21, nothing extracted twice</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Recorded 2026-09-10 against SDK <code>0.3.1</code> on Python 3.10, with no
+      <code>FLUXCOMPUTE_KEY</code>. Reproduce with your own key:
+      <code>python examples/agents/company_brain/run.py</code>.</p>
+    <p>The third row is the point, and this is all it takes. Work is keyed on the content hash, so an
+      unchanged run makes no model calls, and the marker of done work is a row rather than a cursor,
+      so a run that failed halfway cannot report "0 changed" forever afterwards.</p>
+    <div class="term">
+      <div class="bar"><i></i><i></i><i></i><span>company_brain/run.py</span></div>
+<pre><span class="cm"># diff: done work is an extraction row keyed on the content hash, not a cursor</span>
+<span class="kw">if</span> (item.item_id, item.hash) <span class="kw">in</span> extracted:
+    reused += 1                            <span class="cm"># third sync: 0 LLM calls, $0.0000</span>
+<span class="kw">else</span>:
+    changed.append(item)
+
+<span class="kw">with</span> client.step(<span class="str">"extract"</span>) <span class="kw">as</span> s:
+    s.set_attribute(<span class="str">"item"</span>, short_hash(item.item_id))   <span class="cm"># a hash, never the text</span>
+    result = <span class="kw">await</span> call(client, rubric=rubric, user=clean)
+
+<span class="cm"># On the injected failure: retry that call, in the same graph. A reply that was never</span>
+<span class="cm"># JSON leaves no failed llm_call node, and then there is nothing to resume.</span>
+failed = [n <span class="kw">for</span> n <span class="kw">in</span> graph.failed_nodes() <span class="kw">if</span> n.node_type == <span class="str">"llm_call"</span>]
+<span class="kw">if</span> failed:
+    resp = <span class="kw">await</span> client.resume(task_id, node_id=failed[-1].node_id, instruction=instruction)
+<span class="cm"># resumed: 3 facts, routed to claude-sonnet-4-6 (medium), $0.0048</span></pre>
+    </div>
+    <p>What <code>resume()</code> cannot do is run your loop. Fifteen items were never reached, and
+      the process exits with the command that finishes the job from a new process. That run cost
+      <code>$0.0187</code> for fifteen extractions and repeated neither the one that succeeded nor the
+      one that was resumed.</p>
+
+    <h3 id="crm-inbox">CRM inbox</h3>
+    <p>Every inbound message becomes one classified, deduplicated CRM row per conversation, with a
+      suggested next action. Headers and four deterministic rules decide what never reaches a model;
+      priority is a pure function of the class and the account; the agent has no send path, so the
+      worst a bad classification can do is put a row in the wrong column of a file a person reads.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Run</th><th>LLM calls</th><th>Tiers</th><th>Cost</th><th>Outcome</th></tr></thead>
+        <tbody>
+          <tr><td><code>run.py</code>, 17 messages</td><td><code>14</code></td><td>easy <code>12</code>, medium <code>2</code></td><td><code>$0.0207</code></td><td>16 rows, macro precision <code>1.00</code>, phishing recall <code>1.00</code>, 33 nodes</td></tr>
+          <tr><td><code>--run 1</code> again</td><td><code>0</code></td><td>none</td><td><code>$0.0000</code></td><td>14 cached, 0 rows changed</td></tr>
+          <tr><td><code>--run 2</code>, 3 messages</td><td><code>2</code></td><td>easy <code>2</code></td><td><code>$0.0023</code></td><td>2 inserted, 1 updated, 1 quarantined</td></tr>
+          <tr><td><code>--forget &lt;address&gt;</code></td><td><code>0</code></td><td>none</td><td><code>$0.0000</code></td><td>1 message, 1 classification, 1 row erased; no client built</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Recorded 2026-09-10 against SDK <code>0.3.1</code> on Python 3.10, with no
+      <code>FLUXCOMPUTE_KEY</code>. Reproduce with your own key:
+      <code>python examples/agents/crm_inbox/run.py</code>.</p>
+    <p>Three messages never reached a model: an out-of-office and a newsletter were decided by their
+      headers, and a phishing attempt by rules that never read its argument. The second row is
+      checked on every run, not only when somebody remembers to re-run: the upsert is applied twice
+      to the same inputs and the second pass has to change nothing, so idempotency is a gate rather
+      than a hope.</p>
+    <div class="term">
+      <div class="bar"><i></i><i></i><i></i><span>crm_inbox/run.py</span></div>
+<pre>rows = [build_row(db, key, by_domain) <span class="kw">for</span> key <span class="kw">in</span> touched]
+apply_rows(db, rows, task_id)          <span class="cm"># INSERT ... ON CONFLICT(thread_key) DO UPDATE</span>
+after = snapshot(db)
+apply_rows(db, rows, task_id)          <span class="cm"># the same write again, on purpose</span>
+repeat = snapshot(db)
+churn = [k <span class="kw">for</span> k <span class="kw">in</span> after <span class="kw">if</span> after[k] != repeat.get(k)]
+card.gate(<span class="str">"re-run is a zero-row diff"</span>, <span class="kw">not</span> churn)
+<span class="cm"># run 1 again: 0 inserted, 0 updated, 16 unchanged (second pass changed 0), 0 LLM calls</span></pre>
+    </div>
+
     <h2>Development</h2>
     <p>If you're working on the SDK itself:</p>
     <div class="term">
       <div class="bar"><i></i><i></i><i></i><span>shell</span></div>
 <pre>pip install -e <span class="str">".[dev]"</span>
-ruff check fluxcompute/
+ruff check fluxcompute/ examples/
 pytest tests/ -v</pre>
     </div>
     <p>We don't take external code contributions, but bug reports are genuinely useful. See
