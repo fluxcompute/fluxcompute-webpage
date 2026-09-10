@@ -67,12 +67,21 @@ else
   echo "5. Docs content conventions"
   # The site convention is no em dashes; that pass was once hand-applied to the live pages
   # and later committed, so codify it here to keep it from regressing on a redeploy.
+  # An empty body is a failure, not a pass: grep -c on nothing is 0.
   for p in index routing execution-graphs telemetry configuration examples; do
-    n=$(body "$DOCS/$p.html" | grep -c '—')
+    url="$DOCS/$p.html"; [ "$p" = index ] && url="$DOCS/"
+    page=$(body "$url")
+    if [ -z "$page" ]; then
+      bad "/$p.html — empty response, convention check did not run"
+      continue
+    fi
+    n=$(printf '%s\n' "$page" | grep -c '—')
     [ "$n" = 0 ] && ok "/$p.html has no em dashes" || bad "/$p.html has $n line(s) with an em dash"
   done
   ex=$(body "$DOCS/examples.html")
-  if echo "$ex" | grep -q 'id="company-brain"' && echo "$ex" | grep -q 'id="crm-inbox"'; then
+  if [ -z "$ex" ]; then
+    bad "/examples.html — empty response, anchor check did not run"
+  elif echo "$ex" | grep -q 'id="company-brain"' && echo "$ex" | grep -q 'id="crm-inbox"'; then
     ok "/examples.html carries both worked-agent anchors"
   else
     bad "/examples.html is missing a worked-agent anchor (#company-brain, #crm-inbox)"
