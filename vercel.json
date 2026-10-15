@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/demo",
+      "destination": "https://cal.com/niki-karanikola-9qavti/fluxcompute-demo",
+      "permanent": false
+    }
+  ]
+}
