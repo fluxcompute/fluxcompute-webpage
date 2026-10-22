@@ -4,6 +4,11 @@
       "source": "/demo",
       "destination": "https://cal.com/niki-karanikola-9qavti/fluxcompute-demo",
       "permanent": false
+    },
+    {
+      "source": "/waitlist",
+      "destination": "https://tally.so/r/pebPb8",
+      "permanent": false
     }
   ]
 }

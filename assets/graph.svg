@@ -1,0 +1,22 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="680.72" height="384.759" viewBox="0 0 680.72 384.759" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Group">
+<path id="plan-search" opacity="0.65" d="M0.360085 207.831C31.3601 141.831 91.3601 88.8311 156.36 102.831" stroke-width="0.72" stroke-linecap="round" stroke="#37714A"/>
+<path id="plan-extract" opacity="0.34" d="M0.360085 207.831C93.3601 164.831 204.36 228.831 330.36 227.831" stroke-width="0.5" stroke-linecap="round" stroke="#37714A"/>
+<path id="plan-reason" opacity="0.34" d="M0.360085 207.831C74.3601 377.831 277.36 417.831 458.36 337.831" stroke-width="0.5" stroke-linecap="round" stroke="#37714A"/>
+<path id="search-read" opacity="0.65" d="M156.36 102.831C200.36 50.8311 249.36 41.8311 295.36 67.8311" stroke-width="0.72" stroke-linecap="round" stroke="#37714A"/>
+<path id="search-extract" opacity="0.34" d="M156.36 102.831C210.36 142.831 246.36 215.831 330.36 227.831" stroke-width="0.5" stroke-linecap="round" stroke="#37714A"/>
+<path id="read-extract" opacity="0.65" d="M295.36 67.8311C362.36 101.831 369.36 170.831 330.36 227.831" stroke-width="0.72" stroke-linecap="round" stroke="#37714A"/>
+<path id="read-draft" opacity="0.34" d="M295.36 67.8311C366.36 0.831058 477.36 27.8311 538.36 127.831" stroke-width="0.5" stroke-linecap="round" stroke="#37714A"/>
+<path id="extract-reason" opacity="0.65" d="M330.36 227.831C346.36 271.831 398.36 320.831 458.36 337.831" stroke-width="0.72" stroke-linecap="round" stroke="#37714A"/>
+<path id="extract-draft" opacity="0.34" d="M330.36 227.831C401.36 237.831 461.36 168.831 538.36 127.831" stroke-width="0.5" stroke-linecap="round" stroke="#37714A"/>
+<path id="reason-draft" opacity="0.65" d="M458.36 337.831C507.36 299.831 505.36 200.831 538.36 127.831" stroke-width="0.72" stroke-linecap="round" stroke="#37714A"/>
+<path id="reason-verify" opacity="0.34" d="M458.36 337.831C540.36 397.831 638.36 360.831 680.36 257.831" stroke-width="0.5" stroke-linecap="round" stroke="#37714A"/>
+<path id="draft-verify" opacity="0.65" d="M538.36 127.831C606.36 130.831 653.36 198.831 680.36 257.831" stroke-width="0.72" stroke-linecap="round" stroke="#37714A"/>
+<path id="Vector" opacity="0.22" d="M156.36 102.831C167.36 12.8311 207.36 -7.16894 249.36 13.8311" stroke-width="0.4" stroke-linecap="round" stroke="#37714A"/>
+<path id="Vector_2" opacity="0.18" d="M295.36 67.8311C325.36 2.83106 358.36 -14.1689 394.36 11.8311" stroke-width="0.35" stroke-linecap="round" stroke="#37714A"/>
+<path id="Vector_3" opacity="0.14" d="M330.36 227.831C330.36 346.831 279.36 401.831 223.36 379.831" stroke-width="0.35" stroke-linecap="round" stroke="#37714A"/>
+<path id="Vector_4" opacity="0.35" d="M249.36 15.8311C250.465 15.8311 251.36 14.9356 251.36 13.8311C251.36 12.7265 250.465 11.8311 249.36 11.8311C248.256 11.8311 247.36 12.7265 247.36 13.8311C247.36 14.9356 248.256 15.8311 249.36 15.8311Z" fill="#408349"/>
+<path id="Vector_5" opacity="0.3" d="M394.36 13.4311C395.244 13.4311 395.96 12.7147 395.96 11.8311C395.96 10.9474 395.244 10.2311 394.36 10.2311C393.476 10.2311 392.76 10.9474 392.76 11.8311C392.76 12.7147 393.476 13.4311 394.36 13.4311Z" fill="#408349"/>
+<path id="Vector_6" opacity="0.23" d="M223.36 381.631C224.354 381.631 225.16 380.825 225.16 379.831C225.16 378.837 224.354 378.031 223.36 378.031C222.366 378.031 221.56 378.837 221.56 379.831C221.56 380.825 222.366 381.631 223.36 381.631Z" fill="#408349"/>
+</g>
+</svg>
