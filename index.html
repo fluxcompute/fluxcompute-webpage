@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>FluxCompute · The runtime for AI agents</title>
-<meta name="description" content="FluxCompute is the runtime for AI agents: scheduling, routing, recovery, memory, and observability as primitives. You build the agent, and Flux runs it reliably at a fraction of the inference cost."/>
+<title>FluxCompute · Agent performance, bounded by you</title>
+<meta name="description" content="Routers pick a model per call. fluxcompute optimizes the whole agent trajectory: you set limits on cost, latency, and quality, and fluxcompute decides every step inside them."/>
 <link rel="icon" href="/favicon.ico" sizes="any"/>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
 <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png"/>
@@ -12,753 +12,265 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="tokens.css"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
+  :root {
+    color-scheme: light;
+    --paper: #ede8dc;
+    --ink: #1e2416;
+    --ink-logo: #1e2e1a;
+    --ink-nav: #3d3d30;
+    --ink-label: #24372c;
+    --body: #3d5c3a;
+    --accent: #3062d1;
+    --green: #2f6b41;
+    --green-hover: #285c38;
+    --eyebrow: #3d7a45;
+    --sans: "Manrope", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+    --gutter: 64px;
+  }
+  @media (max-width: 760px) { :root { --gutter: 16px; } }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans);
+         -webkit-font-smoothing: antialiased; }
+  p { margin: 0; }
   a { color: inherit; text-decoration: none; }
-  img, svg { max-width: 100%; }
+  img { display: block; max-width: 100%; height: auto; }
 
-  .container { max-width: 1160px; margin: 0 auto; padding: 0 var(--s-5); }
-  @media (min-width: 881px) { .container { padding: 0 var(--s-6); } }
+  .wrap { max-width: 1440px; margin: 0 auto; padding: 0 var(--gutter); }
+  .mono { font-family: var(--mono); font-size: 11px; color: var(--eyebrow); }
 
-  /* section rhythm */
-  section { padding: var(--s-9) 0; position: relative; }
-  .eyebrow {
-    display: flex; align-items: center; gap: var(--s-2);
-    font: 500 11px/1 var(--font-mono); letter-spacing: var(--tracking-mono);
-    color: var(--accent); text-transform: uppercase; margin-bottom: var(--s-4);
-  }
-  .eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--accent); opacity: .6; }
-  h2.sec {
-    margin: 0 0 var(--s-3);
-    font: 650 var(--text-2xl)/1.15 var(--font-sans); letter-spacing: var(--tracking-tight);
-  }
-  p.sec-lede { margin: 0 0 var(--s-6); color: var(--fg-1); line-height: var(--leading-body); max-width: 560px; }
-
-  /* buttons */
-  .btn { display: inline-flex; align-items: center; gap: var(--s-2); border-radius: var(--r-2);
-         font-size: var(--text-sm); font-weight: 650; padding: 11px 18px; transition: transform .15s, box-shadow .15s; }
-  .btn:hover { transform: translateY(-1px); }
-  .btn-flux { color: #0a0b0e; background: var(--accent-grad); box-shadow: 0 0 24px var(--accent-dim); }
-  .btn-ghost { color: var(--fg-1); border: 1px solid var(--line-2); }
-  .btn-ghost:hover { color: var(--fg-0); border-color: var(--fg-2); }
-  .btn-mono { font-family: var(--font-mono); font-weight: 500; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 24px;
+         border-radius: 99px; background: var(--green); color: #fff; font: 600 14px/1 var(--sans);
+         white-space: nowrap; transition: background .15s; }
+  .btn:hover { background: var(--green-hover); }
+  .btn:focus-visible, .nav-links a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
   /* nav */
-  nav.top {
-    position: sticky; top: 0; z-index: 50;
-    display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
-    padding: var(--s-3) var(--s-5);
-    background: color-mix(in srgb, var(--bg-0) 78%, transparent);
-    backdrop-filter: blur(14px);
-    border-bottom: 1px solid var(--line-1);
-  }
-  nav .lockup { display: flex; align-items: center; gap: var(--s-2); min-width: 0; }
-  nav .lockup b { font-size: 15px; font-weight: 650; letter-spacing: var(--tracking-tight); white-space: nowrap; }
-  nav .links { display: flex; gap: var(--s-5); font-size: var(--text-sm); color: var(--fg-1); }
-  nav .links a:hover { color: var(--fg-0); }
-  nav .btn { padding: 8px 14px; flex-shrink: 0; }
-  @media (max-width: 880px) { nav .links { display: none; } }
-
-  /* scroll reveal */
-  .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s ease; }
-  .reveal.in { opacity: 1; transform: none; }
-  .no-motion .reveal { opacity: 1; transform: none; transition: none; }
-
-  footer { border-top: 1px solid var(--line-1); padding: var(--s-7) 0; color: var(--fg-2); font-size: var(--text-sm); }
-
-  /* === Hero === */
-  .hero { position: relative; overflow: hidden; padding: var(--s-7) 0 var(--s-8);
-          background: radial-gradient(ellipse 100% 80% at 72% 30%, #0d1119 0%, var(--bg-0) 60%); }
-  .hero::after { /* grain */
-    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .35;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .04 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-  .hero .grid-bg {
-    position: absolute; inset: 0; pointer-events: none; opacity: .5;
-    background-image: linear-gradient(var(--line-1) 1px, transparent 1px),
-                      linear-gradient(90deg, var(--line-1) 1px, transparent 1px);
-    background-size: 56px 56px;
-    mask-image: radial-gradient(ellipse 90% 80% at 65% 40%, black 20%, transparent 78%);
-    -webkit-mask-image: radial-gradient(ellipse 90% 80% at 65% 40%, black 20%, transparent 78%);
-  }
-  .hero-body { position: relative; z-index: 2; display: grid; grid-template-columns: 44% 56%; align-items: start; }
-  .hero .copy { padding-top: var(--s-6); min-width: 0; }
-  .hero h1 { margin: 0; font: 650 var(--text-4xl)/var(--leading-tight) var(--font-sans); letter-spacing: var(--tracking-display); }
-  .hero h1 .dim { color: var(--fg-2); }
-  .hero h1 .lit { background: var(--accent-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .hero .lede { color: var(--fg-1); line-height: var(--leading-body); margin: var(--s-4) 0 0; max-width: 400px; }
-  .hero .lede b { color: var(--ok-text); font-weight: 550; }
-  .hero .ctas { display: flex; gap: var(--s-3); margin-top: var(--s-6); flex-wrap: wrap; }
-  .stat-strip { display: flex; gap: var(--s-6); margin-top: var(--s-7); flex-wrap: wrap; }
-  .stat .n { font: 600 18px/1 var(--font-mono); }
-  .stat .l { font-size: 11px; color: var(--fg-2); margin-top: 5px; letter-spacing: .05em; text-transform: uppercase; }
-
-  /* graph stage */
-  .stage { position: relative; min-width: 0; }
-  svg.graph { width: 100%; height: 520px; display: block; }
-  .drift { animation: drift 26s ease-in-out infinite alternate; transform-origin: 310px 260px; }
-  @keyframes drift {
-    0% { transform: translate(0,0) rotate(0deg) scale(1); }
-    50% { transform: translate(-6px,5px) rotate(.4deg) scale(1.012); }
-    100% { transform: translate(5px,-4px) rotate(-.3deg) scale(1); }
-  }
-  .drift-bg { animation: driftbg 34s ease-in-out infinite alternate; }
-  @keyframes driftbg { from { transform: translate(0,0); } to { transform: translate(10px,-8px); } }
-  .halo { animation: breathe 5s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
-  .halo.h2 { animation-duration: 6.4s; animation-delay: -2s; }
-  .halo.h3 { animation-duration: 7.2s; animation-delay: -4s; }
-  @keyframes breathe { 0%,100% { transform: scale(1); opacity: .85; } 50% { transform: scale(1.28); opacity: 1; } }
-  .edge { stroke: var(--accent); stroke-opacity: .16; stroke-width: 1.1; fill: none; }
-  .edge.lit { stroke-opacity: .4; }
-  .pulse { fill: var(--accent-hi); }
-  .node-core { fill: var(--accent); }
-  .node-core.bright { fill: var(--accent-hi); }
-  text.tag { font: 9.5px var(--font-mono); fill: var(--fg-2); letter-spacing: .04em; }
-
-  #failNode .node-core { transition: fill .3s; }
-  #failEdge { stroke: var(--fail); stroke-width: 1.1; stroke-dasharray: 4 3; fill: none; opacity: 0; transition: opacity .4s; }
-  #failHalo { opacity: 0; transition: opacity .4s; }
-  #recoverPath { stroke: var(--accent-hi); stroke-width: 1.5; fill: none; stroke-dasharray: 220; stroke-dashoffset: 220; opacity: 0; }
-  .phase-fail #failNode .node-core { fill: var(--fail); }
-  .phase-fail #failHalo, .phase-recover #failHalo { opacity: 1; }
-  .phase-fail #failEdge { opacity: .9; }
-  .phase-recover #failNode .node-core { fill: var(--fail); }
-  .phase-recover #failEdge { opacity: .35; }
-  .phase-recover #recoverPath { opacity: 1; animation: draw 1.6s cubic-bezier(.4,0,.2,1) forwards; }
-  @keyframes draw { to { stroke-dashoffset: 0; } }
-  .phase-healed #failNode .node-core { fill: var(--accent-hi); }
-  .phase-healed #recoverPath { opacity: .8; stroke-dashoffset: 0; }
-
-  /* telemetry */
-  .telemetry {
-    position: absolute; right: var(--s-4); bottom: var(--s-4); z-index: 3; width: 298px; max-width: calc(100% - var(--s-5));
-    background: rgba(8,9,12,.82); backdrop-filter: blur(8px);
-    border: 1px solid var(--line-1); border-radius: var(--r-3); overflow: hidden;
-  }
-  .telemetry .th { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--line-1);
-                   font: 10px var(--font-mono); color: var(--fg-2); letter-spacing: .1em; }
-  .telemetry .live { color: var(--accent); display: flex; align-items: center; gap: 5px; }
-  .telemetry .live::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); animation: blink 1.6s infinite; }
-  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
-  .tlog { padding: 9px 12px 11px; font: 10.5px/1.9 var(--font-mono); }
-  .tlog .row { display: flex; gap: 8px; white-space: nowrap; overflow: hidden; }
-  .tlog .t { color: var(--fg-2); } .tlog .ok { color: var(--ok-text); }
-  .tlog .warn { color: var(--fail); } .tlog .acc { color: var(--accent); }
-  .tlog .row.new { animation: slidein .3s ease; }
-  @keyframes slidein { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-
-  /* reduced motion: freeze ambient, show healed end-state */
-  .no-motion .drift, .no-motion .drift-bg, .no-motion .halo,
-  .no-motion .telemetry .live::before, .no-motion .tlog .row.new { animation: none; }
-  .no-motion #recoverPath { opacity: .8; stroke-dashoffset: 0; }
-  .no-motion #failNode .node-core { fill: var(--accent-hi); }
-
-  @media (max-width: 880px) {
-    .hero-body { grid-template-columns: 1fr; }
-    svg.graph { height: 380px; }
-    .hero .copy { padding-top: var(--s-4); }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 104px; }
+  .logo { font: 600 38px/1 var(--sans); color: var(--ink-logo); }
+  .nav-links { display: flex; align-items: center; gap: 36px; }
+  .nav-links a:not(.btn) { font: 500 14px/1 var(--sans); color: var(--ink-nav); opacity: .72; }
+  .nav-links a:not(.btn):hover { opacity: 1; }
+  @media (max-width: 760px) {
+    .nav { height: 80px; }
+    .logo { font-size: 30px; }
+    .nav-links { gap: 20px; }
+    .nav-links a:not(.btn) { display: none; }
   }
 
-  /* === Problem === */
-  .problem { border-top: 1px solid var(--line-1); background: var(--bg-0); }
-  .fail-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); margin-top: var(--s-6); }
-  .fail-card {
-    background: var(--bg-1); border: 1px solid var(--line-1); border-radius: var(--r-3);
-    padding: var(--s-5); min-width: 0;
+  /* hero */
+  .hero { padding-top: 56px; padding-bottom: 96px; }
+  .hero-row { display: flex; gap: 48px; align-items: center; justify-content: space-between; }
+  .intro { flex: 0 1 560px; display: flex; flex-direction: column; gap: 28px; }
+  h1 { margin: 0; font: 400 clamp(44px, 5vw, 72px)/1.06 var(--sans); color: var(--ink); }
+  h1 span { color: var(--accent); }
+  .lede { font-size: 18px; line-height: 1.55; color: var(--body); }
+  .signup { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+  .artwork { flex: 0 1 704px; height: 560px; padding: 24px; border-radius: 4px; background: var(--paper);
+             display: flex; flex-direction: column; justify-content: space-between; }
+  .artwork img { margin: 0 auto; width: 440px; }
+  .artwork .mono { color: var(--green); }
+  @media (max-width: 1080px) {
+    .hero-row { flex-direction: column; align-items: stretch; }
+    .intro { flex-basis: auto; max-width: 640px; }
+    .artwork { flex-basis: auto; height: auto; gap: 24px; }
   }
-  .fail-card .fh { display: flex; align-items: center; gap: var(--s-2); font: 500 12px var(--font-mono); color: var(--fg-1); }
-  .fail-card .fh::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); opacity: .45; flex-shrink: 0; }
-  .fail-card p { margin: var(--s-3) 0 0; color: var(--fg-1); font-size: var(--text-sm); line-height: var(--leading-body); }
-  .replay-line {
-    margin-top: var(--s-6); padding: var(--s-5);
-    border: 1px solid var(--line-2); border-radius: var(--r-3);
-    background: var(--bg-1); overflow-x: auto;
-  }
-  .replay-line .rl-bad { font: 500 var(--text-sm)/1.7 var(--font-mono); color: var(--fg-2); white-space: nowrap; }
-  .replay-line .rl-good { margin-top: 10px; font: 600 var(--text-md)/1.7 var(--font-mono); color: var(--accent); white-space: nowrap; }
-  .replay-line .fix { color: var(--accent); }
-  @media (max-width: 880px) { .fail-cards { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) { .hero { padding-top: 24px; padding-bottom: 64px; } .lede { font-size: 16px; } }
 
-  /* === Runtime primitives (centerpiece) === */
-  .runtime { border-top: 1px solid var(--line-1); position: relative; overflow: hidden; padding: var(--s-10) 0; background: var(--bg-0); }
-  .rt-glow { position: absolute; inset: 0; pointer-events: none;
-             background: radial-gradient(ellipse 72% 62% at 50% 40%, rgba(47,230,168,.10), transparent 70%); }
-  .runtime .container { position: relative; z-index: 1; }
-  .runtime .eyebrow { justify-content: center; }
-  .runtime h2.sec { text-align: center; font: 650 var(--text-3xl)/1.1 var(--font-sans); letter-spacing: var(--tracking-display);
-                    max-width: 16ch; margin-left: auto; margin-right: auto; }
-  .runtime p.sec-lede { text-align: center; margin-left: auto; margin-right: auto; max-width: 600px; }
-  .runtime-panel { margin-top: var(--s-7); border: 1px solid var(--line-2); border-radius: var(--r-4);
-                   background: linear-gradient(180deg, var(--bg-2), var(--bg-1)); box-shadow: var(--shadow-2); overflow: hidden; }
-  .rp-bar { display: flex; align-items: center; gap: 6px; padding: 11px 16px; background: var(--bg-2); border-bottom: 1px solid var(--line-1); }
-  .rp-bar i { width: 9px; height: 9px; border-radius: 50%; background: #272b34; }
-  .rp-bar > span:first-of-type { margin-left: 10px; font: 12px var(--font-mono); color: var(--fg-2); letter-spacing: .08em; }
-  .rp-bar .live { margin-left: auto; font: 10px var(--font-mono); color: var(--accent); letter-spacing: .14em; }
-  .rp-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
-  .prim { padding: var(--s-5); border-right: 1px solid var(--line-1); border-bottom: 1px solid var(--line-1); min-width: 0; transition: background .3s; }
-  .prim:hover { background: rgba(47,230,168,.045); }
-  .rp-grid .prim:nth-child(4n) { border-right: 0; }
-  .rp-grid .prim:nth-child(n+5) { border-bottom: 0; }
-  .prim .ph { display: flex; align-items: baseline; gap: var(--s-2); }
-  .prim .pi { font: 500 11px var(--font-mono); color: var(--fg-2); letter-spacing: .12em; }
-  .prim .pn { font: 650 var(--text-lg)/1.2 var(--font-sans); letter-spacing: var(--tracking-tight); color: var(--fg-0); }
-  .prim p { margin: var(--s-2) 0 0; color: var(--fg-1); font-size: var(--text-sm); line-height: var(--leading-body); }
-  @media (max-width: 880px) {
-    .runtime { padding: var(--s-9) 0; }
-    .rp-grid { grid-template-columns: 1fr 1fr; }
-    .prim { border-right: 1px solid var(--line-1); border-bottom: 1px solid var(--line-1); }
-    .rp-grid .prim:nth-child(2n) { border-right: 0; }
-    .rp-grid .prim:nth-child(n+5) { border-bottom: 1px solid var(--line-1); }
-    .rp-grid .prim:nth-child(7), .rp-grid .prim:nth-child(8) { border-bottom: 0; }
+  /* sections */
+  h2 { margin: 0; font: 600 clamp(40px, 4vw, 56px)/1.05 var(--sans); color: var(--ink); }
+  h3 { margin: 0; font-weight: 600; line-height: 1.2; color: var(--ink); }
+  .how { padding-top: 96px; padding-bottom: 96px; display: flex; flex-direction: column; gap: 48px; }
+  .how-row { display: flex; gap: 48px; align-items: flex-start; }
+  .steps { flex: 0 0 360px; display: flex; flex-direction: column; gap: 24px; }
+  .step { display: flex; flex-direction: column; gap: 12px; }
+  .step .mono { font-weight: 600; text-transform: uppercase; }
+  .step h3 { font-size: 24px; }
+  .step p:last-child { font-size: 16px; line-height: 1.5; color: var(--body); }
+  .viz { flex: 1 1 0; min-width: 0; padding: 24px; border-radius: 4px; background: var(--paper); }
+  @media (max-width: 1080px) {
+    .how-row { flex-direction: column; }
+    .steps { flex-basis: auto; max-width: 560px; }
+    .viz { width: 100%; padding: 24px 0; }
   }
-  @media (max-width: 560px) {
-    .rp-grid { grid-template-columns: 1fr; }
-    .prim { border-right: 0; }
-    .rp-grid .prim { border-bottom: 1px solid var(--line-1); }
-    .rp-grid .prim:last-child { border-bottom: 0; }
-  }
+  @media (max-width: 760px) { .how { padding-top: 64px; padding-bottom: 64px; } }
 
-  /* === Proof / dashboard === */
-  .proof { border-top: 1px solid var(--line-1); background: var(--bg-0); }
-  .dash {
-    margin-top: var(--s-6); border: 1px solid var(--line-2); border-radius: var(--r-4);
-    background: var(--bg-1); box-shadow: var(--shadow-2); overflow: hidden;
-  }
-  .dash .bar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: var(--bg-2); border-bottom: 1px solid var(--line-1); }
-  .dash .bar i { width: 9px; height: 9px; border-radius: 50%; background: #272b34; }
-  .dash .bar span { margin-left: 10px; font: 11px var(--font-mono); color: var(--fg-2); }
-  .dash-body { display: grid; grid-template-columns: 58% 42%; }
-  .dash-left { padding: var(--s-5); border-right: 1px solid var(--line-1); min-width: 0; }
-  .dash-right { padding: var(--s-5); min-width: 0; }
-  .dash h4 { margin: 0 0 var(--s-3); font: 600 12px var(--font-mono); color: var(--fg-2); letter-spacing: .1em; text-transform: uppercase; }
-  .dash svg { display: block; width: 100%; }
-  .ftable { width: 100%; border-collapse: collapse; font: 12px/1.5 var(--font-mono); }
-  .ftable th { text-align: left; color: var(--fg-2); font-weight: 500; padding: 6px 8px; border-bottom: 1px solid var(--line-1); }
-  .ftable td { padding: 7px 8px; border-bottom: 1px solid var(--line-1); color: var(--fg-1); }
-  .ftable .w { color: var(--fail); } .ftable .g { color: var(--accent); }
-  .rollup { display: flex; gap: var(--s-5); margin-top: var(--s-5); flex-wrap: wrap; }
-  .rollup .r .n { font: 600 17px var(--font-mono); color: var(--fg-0); }
-  .rollup .r .l { font-size: 11px; color: var(--fg-2); text-transform: uppercase; letter-spacing: .05em; margin-top: 4px; }
-  .dash-caption { margin-top: var(--s-4); font: 12px var(--font-mono); color: var(--fg-2); }
-  .dash-caption code { color: var(--accent); }
-  .dash .bar .live { margin-left: auto; font: 10px var(--font-mono); color: var(--accent); letter-spacing: .1em; display: flex; align-items: center; gap: 5px; }
-  .dash .bar .live::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); animation: blink 1.6s infinite; }
-  .dag-pulse { fill: var(--accent-hi); }
-  #dagFail { animation: dagfail 4s ease-in-out infinite; }
-  @keyframes dagfail { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
-  #dagRecover { stroke-dasharray: 300; animation: dagdraw 7s cubic-bezier(.4,0,.2,1) infinite; }
-  @keyframes dagdraw {
-    0% { stroke-dashoffset: 300; opacity: 0; }
-    12% { opacity: 1; }
-    40% { stroke-dashoffset: 0; opacity: 1; }
-    88% { stroke-dashoffset: 0; opacity: 1; }
-    100% { stroke-dashoffset: 0; opacity: 0; }
-  }
-  .ftable tr td { transition: background .4s; }
-  .ftable tr.hot td { background: rgba(47,230,168,.06); }
-  .no-motion #dagFail, .no-motion .dash .bar .live::before { animation: none; }
-  .no-motion #dagRecover { animation: none; stroke-dashoffset: 0; }
-  @media (max-width: 880px) {
-    .dash-body { grid-template-columns: 1fr; }
-    .dash-left { border-right: 0; border-bottom: 1px solid var(--line-1); }
-    .dash-right { overflow-x: auto; }
-  }
+  /* graph: drawn at the design's 856×477, scaled down to fit narrower screens */
+  .graph { position: relative; height: 477px; overflow: hidden; }
+  .graph-canvas { position: absolute; left: 0; top: 0; width: 856px; height: 477px; transform-origin: 0 0; }
+  .graph-canvas > * { position: absolute; }
+  .graph-canvas img { max-width: none; }
+  .node-label { font: 600 11px/normal var(--mono); color: var(--ink-label); text-transform: uppercase; white-space: nowrap; }
+  .node-label small { display: block; font-size: 10px; font-weight: 400; text-transform: none; margin-top: 2px; }
 
-  /* === Code === */
-  .codesec { border-top: 1px solid var(--line-1); }
-  .term {
-    margin-top: var(--s-6); background: var(--bg-1); border: 1px solid var(--line-2);
-    border-radius: var(--r-4); overflow: hidden; box-shadow: var(--shadow-1); max-width: 720px;
-  }
-  .term .bar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: var(--bg-2); border-bottom: 1px solid var(--line-1); }
-  .term .bar i { width: 9px; height: 9px; border-radius: 50%; background: #272b34; }
-  .term .bar span { margin-left: 10px; font: 11px var(--font-mono); color: var(--fg-2); }
-  .term pre { margin: 0; padding: var(--s-5); font: 13.5px/1.8 var(--font-mono); color: var(--fg-1); overflow-x: auto; }
-  .term .kw { color: var(--accent); } .term .str { color: var(--ok-text); } .term .cm { color: var(--fg-2); }
-  .code-kicker { margin-top: var(--s-4); color: var(--fg-1); font-size: var(--text-sm); max-width: 560px; line-height: var(--leading-body); }
-  .code-kicker b { color: var(--ok-text); }
+  /* who it's for */
+  .who { padding-bottom: 96px; display: flex; flex-direction: column; gap: 32px; }
+  .who-head { display: flex; flex-direction: column; gap: 12px; }
+  .who-head p { font-size: 18px; line-height: 1.55; color: var(--body); }
+  .pains { display: grid; grid-template-columns: 322fr 619fr 322fr; gap: 24px; }
+  .pain { display: flex; flex-direction: column; gap: 8px; }
+  .pain h3 { font-size: 18px; }
+  .pain p { font-size: 16px; line-height: 1.5; color: var(--body); }
+  @media (max-width: 900px) { .pains { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) { .who { padding-bottom: 64px; } .who-head p { font-size: 16px; } }
 
-  /* === Cost === */
-  .cost { border-top: 1px solid var(--line-1); background: var(--bg-0); }
-  .meter-wrap { margin-top: var(--s-6); max-width: 640px; }
-  .meter-row { display: flex; align-items: center; gap: var(--s-4); margin-bottom: var(--s-4); min-width: 0; }
-  .meter-row .lab { width: 110px; flex-shrink: 0; font: 500 12px var(--font-mono); color: var(--fg-2); }
-  .meter-track { flex: 1; height: 26px; background: var(--bg-2); border: 1px solid var(--line-1); border-radius: var(--r-1); overflow: hidden; }
-  .meter-fill { height: 100%; width: 0; border-radius: 2px; transition: width 1.4s cubic-bezier(.4,0,.2,1); }
-  .meter-row .val { width: 56px; flex-shrink: 0; text-align: right; font: 600 14px var(--font-mono); }
-  .m-base .meter-fill { background: #2a2f3a; }
-  .m-base .val { color: var(--fg-1); }
-  .m-flux .meter-fill { background: var(--accent-grad); box-shadow: 0 0 18px var(--accent-dim); }
-  .m-flux .val { color: var(--accent); }
-  .meter-wrap.in .m-base .meter-fill { width: 100%; }
-  .meter-wrap.in .m-flux .meter-fill { width: 36%; }
-  .no-motion .m-base .meter-fill { width: 100%; transition: none; }
-  .no-motion .m-flux .meter-fill { width: 36%; transition: none; }
-  .method-note { margin-top: var(--s-4); font: 12px var(--font-mono); color: var(--fg-2); }
-  .method-note code { color: var(--accent); }
-
-  /* === Team === */
-  .team { border-top: 1px solid var(--line-1); }
-  .team-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); margin-top: var(--s-6); }
-  .tcard { background: var(--bg-1); border: 1px solid var(--line-1); border-radius: var(--r-3); padding: var(--s-5); min-width: 0; }
-  .tcard .av { width: 44px; height: 44px; border-radius: 50%; background: var(--accent-grad);
-               display: flex; align-items: center; justify-content: center; color: #0a0b0e; font-weight: 700; }
-  .tcard h3 { margin: var(--s-3) 0 2px; font: 650 var(--text-md)/1.2 var(--font-sans); }
-  .tcard .role { font: 500 12px var(--font-mono); color: var(--accent); }
-  .tcard p { color: var(--fg-1); font-size: var(--text-sm); line-height: var(--leading-body); margin: var(--s-3) 0 0; }
-  .tcard .mail { display: inline-block; margin-top: var(--s-3); font: 12px var(--font-mono); color: var(--fg-2); overflow-wrap: anywhere; }
-  .tcard .mail:hover { color: var(--accent); }
-  .bg-line { margin-top: var(--s-5); font-size: var(--text-sm); color: var(--fg-2); }
-  .bg-line b { color: var(--fg-1); font-weight: 500; }
-  .partner {
-    margin-top: var(--s-7); border: 1px solid var(--line-2); border-radius: var(--r-4);
-    padding: var(--s-6); background: linear-gradient(180deg, var(--bg-1), var(--bg-0));
-    display: flex; justify-content: space-between; align-items: center; gap: var(--s-5); flex-wrap: wrap;
-  }
-  .partner h3 { margin: 0 0 var(--s-2); font: 650 var(--text-xl)/1.2 var(--font-sans); letter-spacing: var(--tracking-tight); }
-  .partner p { margin: 0; color: var(--fg-1); font-size: var(--text-sm); max-width: 480px; line-height: var(--leading-body); }
-  @media (max-width: 880px) { .team-grid { grid-template-columns: 1fr; } }
-
-  /* === Final CTA === */
-  .fin { border-top: 1px solid var(--line-1); text-align: center; overflow: hidden; position: relative;
-         background: radial-gradient(ellipse 70% 90% at 50% 110%, #0d1410 0%, var(--bg-0) 65%); }
-  .fin h2 { margin: 0 0 var(--s-3); font: 650 var(--text-3xl)/1.1 var(--font-sans); letter-spacing: var(--tracking-display); }
-  .fin h2 .lit { background: var(--accent-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .fin p { margin: 0 auto var(--s-6); color: var(--fg-1); max-width: 460px; line-height: var(--leading-body); }
-  .fin .mini-graph { margin: 0 auto var(--s-6); opacity: .8; }
-  footer .cols { display: flex; justify-content: space-between; gap: var(--s-5); flex-wrap: wrap; align-items: center; }
-  footer .flinks { display: flex; gap: var(--s-5); flex-wrap: wrap; }
-  footer a:hover { color: var(--fg-0); }
+  /* footer */
+  footer { padding-bottom: 16px; display: flex; flex-direction: column; gap: 28px; }
+  .rule { height: 1px; background: var(--body); opacity: .25; }
+  .foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .foot .mono { color: var(--body); opacity: .9; }
+  @media (max-width: 760px) { .foot .logo { font-size: 30px; } }
 </style>
 </head>
 <body>
 
-<nav class="top">
-  <a class="lockup" href="#top">
-    <svg width="30" height="24" viewBox="0 0 36 30" aria-hidden="true">
-      <defs>
-        <linearGradient id="nav-flux" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#2fe6a8"/><stop offset="100%" stop-color="#aef7dc"/>
-        </linearGradient>
-      </defs>
-      <path d="M 3 25 C 9 25, 11 5, 17 5 C 23 5, 25 25, 31 25" fill="none" stroke="url(#nav-flux)" stroke-width="3" stroke-linecap="round"/>
-      <circle cx="3" cy="25" r="2.5" fill="#2fe6a8"/>
-      <circle cx="17" cy="5" r="2.5" fill="url(#nav-flux)"/>
-      <circle cx="31" cy="25" r="2.5" fill="#aef7dc"/>
-    </svg>
-    <b>FluxCompute</b>
-  </a>
-  <div class="links">
-    <a href="#how">Runtime</a>
-    <a href="#proof">Proof</a>
-    <a href="#cost">Cost</a>
-    <a href="#team">Team</a>
-  </div>
-  <a class="btn btn-flux" href="/demo?src=site">Book a demo</a>
-</nav>
+<header class="wrap nav">
+  <a class="logo" href="#top" id="top">fluxcompute</a>
+  <nav class="nav-links" aria-label="Primary">
+    <a href="#how">How it works</a>
+    <a href="#who">Who it's for</a>
+    <a class="btn" href="/waitlist?utm_source=nav">Join the waitlist</a>
+  </nav>
+</header>
 
-<main id="top">
-
-<section class="hero">
-  <div class="grid-bg"></div>
-  <div class="container hero-body">
-    <div class="copy">
-      <div class="eyebrow">The runtime for AI agents</div>
-      <h1>Build the agent.<br/><span class="lit">Flux runs it.</span></h1>
-      <p class="lede">An agent isn't one model call. It's a long-running system, and keeping one alive means building your own scheduling, routing, and recovery. <b>Flux is the runtime that handles all of it</b>, so you build the agent and it runs reliably, at a fraction of the cost.</p>
-      <div class="ctas">
-        <a class="btn btn-flux" href="/demo?src=site">Book a demo</a>
-        <a class="btn btn-ghost btn-mono" href="https://pypi.org/project/fluxcompute/">$ pip install fluxcompute</a>
+<main>
+  <section class="wrap hero">
+    <div class="hero-row">
+      <div class="intro">
+        <h1>routers pick a model per call. <span>fluxcompute optimizes the whole agent trajectory</span></h1>
+        <p class="lede">fluxcompute sits between your agent's code and the model providers. You set limits on cost, latency, and quality. At every step, fluxcompute decides how to get the best result from the whole run while staying inside them, using up to 65% less compute.</p>
+        <div class="signup">
+          <p class="mono">Get early access to the API</p>
+          <a class="btn" href="/waitlist?utm_source=hero">Join the waitlist</a>
+        </div>
       </div>
-      <div class="stat-strip">
-        <div class="stat"><div class="n">−64%</div><div class="l">inference spend</div></div>
-        <div class="stat"><div class="n">0</div><div class="l">lost tasks</div></div>
-        <div class="stat"><div class="n">1 line</div><div class="l">to integrate</div></div>
+      <div class="artwork">
+        <img src="assets/orbit.svg" width="440" height="440" alt=""/>
+        <p class="mono" aria-hidden="true">φ</p>
       </div>
     </div>
+  </section>
 
-    <div class="stage" id="stage">
-      <svg class="graph" viewBox="0 0 620 520" aria-label="Live view of an agent run: a step fails and Flux re-routes around it">
-        <defs>
-          <filter id="ng" x="-120%" y="-120%" width="340%" height="340%">
-            <feGaussianBlur stdDeviation="3.2" result="b"/>
-            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-          <radialGradient id="halo">
-            <stop offset="0%" stop-color="#2fe6a8" stop-opacity=".4"/>
-            <stop offset="100%" stop-color="#2fe6a8" stop-opacity="0"/>
-          </radialGradient>
-          <radialGradient id="haloF">
-            <stop offset="0%" stop-color="#ff4d5e" stop-opacity=".45"/>
-            <stop offset="100%" stop-color="#ff4d5e" stop-opacity="0"/>
-          </radialGradient>
-        </defs>
-
-        <!-- distant layer -->
-        <g class="drift-bg" opacity=".5">
-          <g stroke="#2fe6a8" stroke-opacity=".07" stroke-width=".7" fill="none">
-            <path d="M60 70 Q 120 100 165 78"/><path d="M480 440 Q 530 400 585 428"/>
-            <path d="M540 90 Q 500 140 545 175"/><path d="M60 380 Q 105 350 90 300"/>
-          </g>
-          <g fill="#5c6472" opacity=".5">
-            <circle cx="60" cy="70" r="1.6"/><circle cx="165" cy="78" r="2"/><circle cx="480" cy="440" r="1.6"/>
-            <circle cx="585" cy="428" r="2"/><circle cx="540" cy="90" r="1.6"/><circle cx="545" cy="175" r="2"/>
-            <circle cx="60" cy="380" r="1.6"/><circle cx="90" cy="300" r="1.8"/><circle cx="300" cy="35" r="1.5"/>
-            <circle cx="35" cy="200" r="1.5"/><circle cx="600" cy="270" r="1.5"/>
-          </g>
-        </g>
-
-        <!-- main constellation -->
-        <g class="drift">
-          <path id="e1" class="edge lit" d="M150 205 Q 210 140 285 160"/>
-          <path id="e2" class="edge lit" d="M285 160 Q 360 120 420 175"/>
-          <path id="e3" class="edge" d="M285 160 Q 300 90 350 70"/>
-          <path id="e4" class="edge lit" d="M150 205 Q 160 280 215 320"/>
-          <path id="e5" class="edge lit" d="M215 320 Q 290 350 345 300"/>
-          <path id="e6" class="edge" d="M345 300 Q 400 250 420 175"/>
-          <path id="e7" class="edge lit" d="M420 175 Q 490 190 520 250"/>
-          <path id="e8" class="edge" d="M345 300 Q 400 350 445 390"/>
-          <path id="e9" class="edge" d="M520 250 Q 510 330 445 390"/>
-          <path id="e10" class="edge" d="M350 70 Q 420 60 470 100"/>
-
-          <path id="failEdge" d="M215 320 Q 235 385 290 430"/>
-          <path id="recoverPath" d="M215 320 Q 330 380 445 390"/>
-
-          <circle class="halo" cx="285" cy="160" r="30" fill="url(#halo)"/>
-          <circle class="halo h2" cx="420" cy="175" r="24" fill="url(#halo)"/>
-          <circle class="halo h3" cx="215" cy="320" r="22" fill="url(#halo)"/>
-          <circle class="halo h2" cx="150" cy="205" r="18" fill="url(#halo)"/>
-          <circle class="halo h3" cx="345" cy="300" r="18" fill="url(#halo)"/>
-          <circle class="halo" cx="520" cy="250" r="16" fill="url(#halo)"/>
-          <circle class="halo h2" cx="445" cy="390" r="18" fill="url(#halo)"/>
-          <circle id="failHalo" cx="290" cy="430" r="22" fill="url(#haloF)"/>
-
-          <circle class="node-core bright" cx="285" cy="160" r="6" filter="url(#ng)"/>
-          <circle class="node-core" cx="420" cy="175" r="5" filter="url(#ng)"/>
-          <circle class="node-core" cx="150" cy="205" r="4.5" filter="url(#ng)"/>
-          <circle class="node-core" cx="215" cy="320" r="4.5" filter="url(#ng)"/>
-          <circle class="node-core" cx="345" cy="300" r="4.5" filter="url(#ng)"/>
-          <circle class="node-core" cx="350" cy="70" r="3.5"/>
-          <circle class="node-core" cx="470" cy="100" r="3"/>
-          <circle class="node-core" cx="520" cy="250" r="4"/>
-          <circle class="node-core bright" cx="445" cy="390" r="4.5" filter="url(#ng)"/>
-          <g id="failNode"><circle class="node-core" cx="290" cy="430" r="4.5" filter="url(#ng)"/></g>
-
-          <text class="tag" x="298" y="150">plan</text>
-          <text class="tag" x="432" y="168">retrieve</text>
-          <text class="tag" x="108" y="200">ingest</text>
-          <text class="tag" x="175" y="332">tool-call</text>
-          <text class="tag" x="356" y="315">synthesize</text>
-          <text class="tag" x="533" y="245">verify</text>
-          <text class="tag" x="455" y="405">deliver</text>
-          <text class="tag" x="300" y="443">write-report</text>
-
-          <circle class="pulse" r="2">
-            <animateMotion dur="3.6s" repeatCount="indefinite"><mpath href="#e1"/></animateMotion>
-          </circle>
-          <circle class="pulse" r="2">
-            <animateMotion dur="4.4s" begin="-1.2s" repeatCount="indefinite"><mpath href="#e2"/></animateMotion>
-          </circle>
-          <circle class="pulse" r="1.8">
-            <animateMotion dur="5s" begin="-2s" repeatCount="indefinite"><mpath href="#e5"/></animateMotion>
-          </circle>
-          <circle class="pulse" r="1.8">
-            <animateMotion dur="4.2s" begin="-3s" repeatCount="indefinite"><mpath href="#e7"/></animateMotion>
-          </circle>
-          <circle class="pulse" r="1.6">
-            <animateMotion dur="5.6s" begin="-.6s" repeatCount="indefinite"><mpath href="#e4"/></animateMotion>
-          </circle>
-        </g>
-      </svg>
-
-      <div class="telemetry">
-        <div class="th"><span>FLUX · EXECUTION LOG</span><span class="live">LIVE</span></div>
-        <div class="tlog" id="tlog"></div>
+  <section class="wrap how" id="how">
+    <h2>How it works</h2>
+    <div class="how-row">
+      <div class="steps">
+        <div class="step">
+          <p class="mono">01</p>
+          <h3>you define the limits</h3>
+          <p>Set the budget, latency, and quality bounds for the whole run, not for each call.</p>
+        </div>
+        <div class="step">
+          <p class="mono">02</p>
+          <h3>fluxcompute decides at every step</h3>
+          <p>Before each step, fluxcompute looks at what's left of your budget, latency, and quality targets and chooses how to run it.</p>
+        </div>
+        <div class="step">
+          <p class="mono">03</p>
+          <h3>finish inside your limits</h3>
+          <p>Every run ends within the bounds you set, with a full record of each decision and why it was made.</p>
+        </div>
       </div>
-    </div>
-  </div>
-</section>
 
-<section class="problem" id="problem">
-  <div class="container">
-    <div class="eyebrow reveal">The missing layer</div>
-    <h2 class="sec reveal">Every team is rebuilding the same plumbing.</h2>
-    <p class="sec-lede reveal">Retries, scheduling, state, routing, recovery: the operational layer that keeps an agent alive in production. Today it's hand-rolled per team, per agent, and it breaks in the same handful of ways.</p>
-    <div class="fail-cards">
-      <div class="fail-card reveal">
-        <div class="fh">context_overflow</div>
-        <p>The window fills mid-task and the model silently drops the thing it needed most. The failure surfaces three steps later, somewhere else.</p>
-      </div>
-      <div class="fail-card reveal">
-        <div class="fh">tool_error</div>
-        <p>A flaky API returns one 500 and the whole run is dead, even though 36 steps of perfectly good work already succeeded.</p>
-      </div>
-      <div class="fail-card reveal">
-        <div class="fh">model_stall</div>
-        <p>The model loops, refuses, or times out at 2 a.m. Nobody notices until morning. The logs won't tell you which step, or why.</p>
-      </div>
-    </div>
-    <div class="replay-line reveal">
-      <div class="rl-bad">without a runtime · fail @ step 37 → replay all 40 steps → 2× cost, 0 answers</div>
-      <div class="rl-good"><span class="fix">on flux · fail @ step 37 → resume @ step 37 → done</span></div>
-    </div>
-  </div>
-</section>
+      <div class="viz">
+        <div class="graph" role="img" aria-label="An agent run as a graph: Plan on the strongest model, Search and Read sources on a mid model, Extract on a small model, Draft with capped depth, Reason escalated, and a final Verify pass.">
+          <div class="graph-canvas" aria-hidden="true">
+            <img src="assets/graph.svg" width="680.72" height="384.759" alt="" style="left:100px;top:22.32px"/>
+            <img src="assets/ctrl.svg" width="3" height="3" alt="" style="left:163.75px;top:146px"/>
+            <img src="assets/ctrl.svg" width="3" height="3" alt="" style="left:323.25px;top:76.75px"/>
+            <img src="assets/ctrl.svg" width="3" height="3" alt="" style="left:450.75px;top:159.88px"/>
+            <img src="assets/ctrl.svg" width="3" height="3" alt="" style="left:476px;top:313.63px"/>
+            <img src="assets/ctrl.svg" width="3" height="3" alt="" style="left:530.25px;top:217.63px"/>
+            <img src="assets/ctrl.svg" width="3" height="3" alt="" style="left:722.88px;top:192.5px"/>
 
-<section class="runtime" id="how">
-  <div class="rt-glow"></div>
-  <div class="container">
-    <div class="eyebrow reveal">The runtime</div>
-    <h2 class="sec reveal">Everything an agent needs to run, built in.</h2>
-    <p class="sec-lede reveal">Scheduling, routing, recovery, memory: the operational layer you'd otherwise wire up by hand, provided as runtime primitives.</p>
-    <div class="runtime-panel reveal">
-      <div class="rp-bar"><i></i><i></i><i></i><span>flux runtime</span><span class="live">8 PRIMITIVES</span></div>
-      <div class="rp-grid">
-        <div class="prim"><div class="ph"><span class="pi">01</span><span class="pn">Execution</span></div><p>Runs each unit of work to completion across models, tools, and steps.</p></div>
-        <div class="prim"><div class="ph"><span class="pi">02</span><span class="pn">Scheduling</span></div><p>Orders and parallelizes steps, and knows what can run now and what has to wait.</p></div>
-        <div class="prim"><div class="ph"><span class="pi">03</span><span class="pn">Routing</span></div><p>Sizes each step by difficulty on the fly and sends it to the cheapest model that can actually do it.</p></div>
-        <div class="prim"><div class="ph"><span class="pi">04</span><span class="pn">Checkpointing</span></div><p>Captures state at every step, so work is never lost.</p></div>
-        <div class="prim"><div class="ph"><span class="pi">05</span><span class="pn">Recovery</span></div><p>Resumes from the exact point of failure instead of restarting the task.</p></div>
-        <div class="prim"><div class="ph"><span class="pi">06</span><span class="pn">Memory</span></div><p>Persists and compresses context across steps and across runs.</p></div>
-        <div class="prim"><div class="ph"><span class="pi">07</span><span class="pn">Observability</span></div><p>Every step, cost, and failure named and visible live.</p></div>
-        <div class="prim"><div class="ph"><span class="pi">08</span><span class="pn">Governance</span></div><p>Budgets, permissions, and limits enforced by the runtime, not your app code.</p></div>
-      </div>
-    </div>
-  </div>
-</section>
+            <img src="assets/plan-glow-outer.svg" width="88" height="88" alt="" style="left:56px;top:186px"/>
+            <img src="assets/plan-glow-inner.svg" width="52" height="52" alt="" style="left:74px;top:204px"/>
+            <img src="assets/plan-dot.svg" width="24" height="24" alt="" style="left:88px;top:218px"/>
+            <p class="node-label" style="left:30px;top:187px">Plan<small>Strongest model</small></p>
 
-<section class="proof" id="proof">
-  <div class="container">
-    <div class="eyebrow reveal">The runtime, running</div>
-    <h2 class="sec reveal">Every step, named. Every failure, recovered.</h2>
-    <p class="sec-lede reveal">A real run inside the Flux dashboard. Every step color-coded by outcome, every failure classified, every recovery costed.</p>
-    <div class="dash reveal">
-      <div class="bar"><i></i><i></i><i></i><span>flux dashboard · runs</span><span class="live">LIVE</span></div>
-      <div class="dash-body">
-        <div class="dash-left">
-          <h4>task: market-research · run #147</h4>
-          <svg viewBox="0 0 520 240" aria-label="A real run inside Flux, each step colored by status">
-            <g stroke="#2fe6a8" stroke-opacity=".3" fill="none">
-              <path id="pe1" d="M40 120 Q 90 70 150 80"/><path id="pe2" d="M150 80 Q 220 60 280 90"/>
-              <path id="pe3" d="M40 120 Q 100 170 170 165"/><path d="M170 165 Q 235 175 280 90"/>
-              <path id="pe4" d="M280 90 Q 350 95 400 130"/>
-            </g>
-            <path d="M170 165 Q 230 215 300 205" stroke="#ff4d5e" stroke-dasharray="4 3" fill="none"/>
-            <path id="dagRecover" d="M170 165 Q 300 190 400 130" stroke="#aef7dc" fill="none"/>
-            <g fill="#2fe6a8">
-              <circle cx="40" cy="120" r="6"/><circle cx="150" cy="80" r="6"/>
-              <circle cx="170" cy="165" r="6"/><circle cx="280" cy="90" r="6"/>
-            </g>
-            <circle id="dagFail" cx="300" cy="205" r="6" fill="#ff4d5e"/>
-            <circle cx="400" cy="130" r="6" fill="#aef7dc"/>
-            <circle class="dag-pulse" r="2.2">
-              <animateMotion dur="3.2s" repeatCount="indefinite"><mpath href="#pe1"/></animateMotion>
-            </circle>
-            <circle class="dag-pulse" r="2.2">
-              <animateMotion dur="4s" begin="-1.5s" repeatCount="indefinite"><mpath href="#pe2"/></animateMotion>
-            </circle>
-            <circle class="dag-pulse" r="2">
-              <animateMotion dur="4.6s" begin="-.8s" repeatCount="indefinite"><mpath href="#pe3"/></animateMotion>
-            </circle>
-            <circle class="dag-pulse" r="2">
-              <animateMotion dur="3.6s" begin="-2.2s" repeatCount="indefinite"><mpath href="#pe4"/></animateMotion>
-            </circle>
-            <g font-family="JetBrains Mono, monospace" font-size="9" fill="#5c6472">
-              <text x="28" y="140">ingest</text><text x="138" y="68">plan</text>
-              <text x="140" y="185">tool-call</text><text x="268" y="78">synthesize</text>
-              <text x="278" y="225" fill="#8a4640">write-report ✗</text><text x="388" y="118">deliver ✓</text>
-            </g>
-          </svg>
-          <div class="rollup">
-            <div class="r"><div class="n" data-count="9" data-suffix="/9">9/9</div><div class="l">steps complete</div></div>
-            <div class="r"><div class="n" data-count="1">1</div><div class="l">failure recovered</div></div>
-            <div class="r"><div class="n" data-count="0.184" data-prefix="$" data-dec="3">$0.184</div><div class="l">task cost</div></div>
-            <div class="r"><div class="n" data-count="0.42" data-prefix="$" data-dec="2">$0.42</div><div class="l">saved vs replay</div></div>
+            <img src="assets/search-glow-outer.svg" width="64" height="64" alt="" style="left:224px;top:93px"/>
+            <img src="assets/search-glow-inner.svg" width="36" height="36" alt="" style="left:238px;top:107px"/>
+            <img src="assets/search-dot.svg" width="20" height="20" alt="" style="left:246px;top:115px"/>
+            <p class="node-label" style="left:233px;top:80px">Search<small>Mid model</small></p>
+
+            <img src="assets/read-glow-outer.svg" width="60" height="60" alt="" style="left:365px;top:60px"/>
+            <img src="assets/read-glow-inner.svg" width="34" height="34" alt="" style="left:378px;top:73px"/>
+            <img src="assets/read-dot.svg" width="18" height="18" alt="" style="left:386px;top:81px"/>
+            <p class="node-label" style="left:369px;top:45px">Read sources<small>Mid model</small></p>
+
+            <img src="assets/extract-glow-outer.svg" width="52" height="52" alt="" style="left:404px;top:224px"/>
+            <img src="assets/extract-glow-inner.svg" width="30" height="30" alt="" style="left:415px;top:235px"/>
+            <img src="assets/extract-dot.svg" width="16" height="16" alt="" style="left:422px;top:242px"/>
+            <p class="node-label" style="left:410px;top:273px">Extract<small>Small model</small></p>
+
+            <img src="assets/read-glow-outer.svg" width="60" height="60" alt="" style="left:528px;top:330px"/>
+            <img src="assets/reason-glow-inner.svg" width="34" height="34" alt="" style="left:541px;top:343px"/>
+            <img src="assets/read-dot.svg" width="18" height="18" alt="" style="left:549px;top:351px"/>
+            <p class="node-label" style="left:580px;top:345px">Reason<small>Escalate</small></p>
+
+            <img src="assets/read-glow-outer.svg" width="60" height="60" alt="" style="left:608px;top:120px"/>
+            <img src="assets/reason-glow-inner.svg" width="34" height="34" alt="" style="left:621px;top:133px"/>
+            <img src="assets/read-dot.svg" width="18" height="18" alt="" style="left:629px;top:141px"/>
+            <p class="node-label" style="left:619px;top:107px">Draft<small>Cap depth</small></p>
+
+            <img src="assets/read-glow-outer.svg" width="60" height="60" alt="" style="left:750px;top:250px"/>
+            <img src="assets/verify-glow-inner.svg" width="34" height="34" alt="" style="left:763px;top:263px"/>
+            <img src="assets/read-dot.svg" width="18" height="18" alt="" style="left:771px;top:271px"/>
+            <p class="node-label" style="left:743px;top:308px">Verify<small>Final pass</small></p>
           </div>
         </div>
-        <div class="dash-right">
-          <h4>failure reasons · last 24h</h4>
-          <table class="ftable">
-            <tr><th>reason</th><th>count</th><th>recovered</th></tr>
-            <tr><td class="w">context_overflow</td><td>7</td><td class="g">7/7</td></tr>
-            <tr><td class="w">tool_error</td><td>4</td><td class="g">4/4</td></tr>
-            <tr><td class="w">stall</td><td>2</td><td class="g">2/2</td></tr>
-            <tr><td class="w">refusal</td><td>1</td><td class="g">1/1</td></tr>
-            <tr><td class="w">budget</td><td>1</td><td class="g">1/1</td></tr>
-          </table>
-        </div>
       </div>
     </div>
-    <p class="dash-caption reveal">Demo workload. Reproduce it yourself: <code>pip install fluxcompute</code></p>
-  </div>
-</section>
+  </section>
 
-<section class="codesec" id="code">
-  <div class="container">
-    <div class="eyebrow reveal">The API</div>
-    <h2 class="sec reveal">Recovery is one call.</h2>
-    <div class="term reveal">
-      <div class="bar"><i></i><i></i><i></i><span>agent.py</span></div>
-      <pre><span class="kw">with</span> client.task(<span class="str">"market-research"</span>) <span class="kw">as</span> t:
-    result = <span class="kw">await</span> client.messages.create(...)
-    <span class="kw">with</span> client.step(<span class="str">"fetch-pricing-data"</span>) <span class="kw">as</span> s:
-        s.set_output(pricing_data)
-    <span class="cm"># a step fails deep into the task…</span>
-
-<span class="cm"># instead of restarting from scratch:</span>
-response = <span class="kw">await</span> client.resume(t.task_id)
-<span class="cm"># → minimal context from succeeded steps, failed step re-routed</span></pre>
+  <section class="wrap who" id="who">
+    <div class="who-head">
+      <h2>Who it's for</h2>
+      <p>For teams whose agents are the product, and whose inference bill grows with every run.</p>
     </div>
-    <p class="code-kicker reveal">You write the agent's logic. <b>Flux runs it</b>: scheduling, routing, checkpointing, and recovery happen underneath, with no framework to adopt and no workflow to rewrite.</p>
-  </div>
-</section>
-
-<section class="cost" id="cost">
-  <div class="container">
-    <div class="eyebrow reveal">Cost</div>
-    <h2 class="sec reveal">Reliability that pays for itself.</h2>
-    <p class="sec-lede reveal">Flux sizes every step by difficulty on the fly and runs it on the cheapest model that can actually handle it, cutting inference spend without a line of model-selection code from you. The same judgment picks the right model on a retry.</p>
-    <div class="meter-wrap reveal">
-      <div class="meter-row m-base"><div class="lab">direct-to-frontier</div><div class="meter-track"><div class="meter-fill"></div></div><div class="val">1.00×</div></div>
-      <div class="meter-row m-flux"><div class="lab">with flux</div><div class="meter-track"><div class="meter-fill"></div></div><div class="val">0.36×</div></div>
-      <p class="method-note">Demo workload, mixed difficulty · reproducible with <code>pip install fluxcompute</code> and your own keys</p>
-    </div>
-  </div>
-</section>
-
-<section class="team" id="team">
-  <div class="container">
-    <div class="eyebrow reveal">Team</div>
-    <h2 class="sec reveal">Built by the people who run it.</h2>
-    <div class="team-grid">
-      <div class="tcard reveal">
-        <div class="av">I</div>
-        <h3>Ishan Patwardhan</h3>
-        <div class="role">co-founder</div>
-        <p>Inference research at MIT CSAIL (hierarchical MoE, DAG-based token routing), SWE at Google on Gemini evaluation and context engineering, HPC systems at HPE. Researcher at Cornell Tech in agentic systems and hardware-software co-design.</p>
-        <a class="mail" href="mailto:ip259@cornell.edu">ip259@cornell.edu</a>
+    <div class="pains">
+      <div class="pain">
+        <h3>Your agents take many steps.</h3>
+        <p>Long, multi-call runs where cost and latency compound.</p>
       </div>
-      <div class="tcard reveal">
-        <div class="av">N</div>
-        <h3>Niki Karanikola</h3>
-        <div class="role">co-founder</div>
-        <p>Two years shipping production LLM inference, dense retrieval, and RAG pipelines at Veolia, where she re-architected enterprise knowledge access from weeks to minutes, 6× faster reporting cadence, +20% NDCG.</p>
-        <a class="mail" href="mailto:nk699@cornell.edu">nk699@cornell.edu</a>
+      <div class="pain">
+        <h3>Your inference bill is hard to predict.</h3>
+        <p>Spend grows with trajectory length, and you can't cap it without hurting results.</p>
+      </div>
+      <div class="pain">
+        <h3>You've hand-tuned it yourself.</h3>
+        <p>Hard-coded models per task, swapped in cheaper ones, and still worry about quality.</p>
       </div>
     </div>
-    <p class="bg-line reveal">Our team's background: <b>Cornell Tech · MIT CSAIL · Google · Veolia · HPE</b></p>
-    <div class="partner reveal">
-      <div>
-        <h3>We're onboarding early design partners.</h3>
-        <p>Running agents in production, or trying to? We'll wire Flux under your stack with you, and you get direct access to the people who built it.</p>
-      </div>
-      <a class="btn btn-flux" href="/demo?src=site-partner">Become a design partner</a>
-    </div>
-  </div>
-</section>
-
-<section class="fin">
-  <div class="container">
-    <svg class="mini-graph" width="260" height="60" viewBox="0 0 260 60" aria-hidden="true">
-      <g stroke="#2fe6a8" stroke-opacity=".3" fill="none"><path d="M20 30 Q 70 10 120 26"/><path d="M120 26 Q 180 40 240 24"/></g>
-      <g fill="#2fe6a8"><circle cx="20" cy="30" r="4"/><circle cx="120" cy="26" r="5"/></g>
-      <circle cx="240" cy="24" r="4" fill="#aef7dc"/>
-    </svg>
-    <h2>Put the runtime <span class="lit">under your agents.</span></h2>
-    <p>Twenty minutes with the founders. Bring your worst-failing agent and we'll run it on Flux.</p>
-    <a class="btn btn-flux" href="/demo?src=site">Book a demo</a>
-  </div>
-</section>
-
+  </section>
 </main>
 
-<footer>
-  <div class="container cols">
-    <div>© 2026 FluxCompute · the runtime for AI agents</div>
-    <div class="flinks">
-      <a href="https://pypi.org/project/fluxcompute/">PyPI</a>
-      <a href="https://docs.fluxcompute.dev">Docs</a>
-      <a href="mailto:ip259@cornell.edu">Contact</a>
-    </div>
+<footer class="wrap">
+  <div class="rule"></div>
+  <div class="foot">
+    <p class="logo">fluxcompute</p>
+    <p class="mono">AGENT PERFORMANCE, BOUNDED BY YOU.</p>
+    <p class="mono">© fluxcompute 2026</p>
   </div>
 </footer>
 
 <script>
-  const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (RM) document.documentElement.classList.add('no-motion');
-
-  /* telemetry + failure cycle */
-  const stage = document.getElementById('stage');
-  const tlog = document.getElementById('tlog');
-  function log(html) {
-    const r = document.createElement('div');
-    r.className = 'row new'; r.innerHTML = html;
-    tlog.appendChild(r);
-    while (tlog.children.length > 6) tlog.removeChild(tlog.firstChild);
-  }
-  const ts = () => `<span class="t">${new Date().toTimeString().slice(0,8)}</span>`;
-  const idle = [
-    () => log(`${ts()} <span class="ok">step ok</span> · plan → retrieve <span class="t">· 212ms</span>`),
-    () => log(`${ts()} <span class="acc">route</span> · synthesize → <span class="ok">mid-tier</span> <span class="t">· $0.0031</span>`),
-    () => log(`${ts()} <span class="ok">step ok</span> · tool-call:search <span class="t">· 640ms</span>`),
-    () => log(`${ts()} <span class="acc">route</span> · verify → <span class="ok">small-tier</span> <span class="t">· $0.0004</span>`),
-    () => log(`${ts()} <span class="ok">cache hit</span> · context reused <span class="t">· −1,842 tok</span>`),
-  ];
-  let li = 0, ct = 0;
-  function tick() {
-    const phase = ++ct % 14;
-    if (phase === 8) { stage.classList.add('phase-fail');
-      log(`${ts()} <span class="warn">step failed</span> · write-report <span class="t">· context_overflow</span>`); }
-    else if (phase === 10) { stage.classList.replace('phase-fail','phase-recover');
-      log(`${ts()} <span class="acc">resume</span> · from checkpoint 7/9`); }
-    else if (phase === 12) { stage.classList.replace('phase-recover','phase-healed');
-      log(`${ts()} <span class="ok">recovered</span> · re-routed <span class="t">· saved $0.42 vs replay</span>`); }
-    else if (phase === 0) { stage.classList.remove('phase-healed'); }
-    else if (phase % 2 === 0) { idle[li++ % idle.length](); }
-  }
-  idle[0](); idle[1](); idle[2]();
-  if (!RM) setInterval(tick, 1100); else stage.classList.add('phase-healed');
-
-  // scroll reveal
-  const io = new IntersectionObserver((es) => {
-    es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
-  }, { threshold: .15 });
-  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
-
-  /* dashboard: count-up stats on reveal */
-  function countUp(el) {
-    const target = parseFloat(el.dataset.count);
-    const dec = parseInt(el.dataset.dec || '0', 10);
-    const pre = el.dataset.prefix || '', suf = el.dataset.suffix || '';
-    const t0 = performance.now(), dur = 1200;
-    (function step(t) {
-      const p = Math.min((t - t0) / dur, 1);
-      const eased = 1 - Math.pow(1 - p, 3);
-      el.textContent = pre + (target * eased).toFixed(dec) + suf;
-      if (p < 1) requestAnimationFrame(step);
-    })(t0);
-  }
-  const dash = document.querySelector('.dash');
-  if (dash && !RM) {
-    const dio = new IntersectionObserver((es) => {
-      es.forEach(e => {
-        if (e.isIntersecting) {
-          dash.querySelectorAll('[data-count]').forEach(countUp);
-          dio.unobserve(dash);
-        }
-      });
-    }, { threshold: .3 });
-    dio.observe(dash);
-    /* cycling row highlight on the failure table */
-    const rows = dash.querySelectorAll('.ftable tr:not(:first-child)');
-    let ri = 0;
-    setInterval(() => {
-      rows.forEach(r => r.classList.remove('hot'));
-      rows[ri % rows.length].classList.add('hot');
-      ri++;
-    }, 2400);
-  }
+  // Scale the fixed-size graph to its column so it never overflows on narrow screens.
+  (function () {
+    var box = document.querySelector('.graph'), canvas = box.firstElementChild;
+    function fit() {
+      var s = Math.min(1, box.clientWidth / 856);
+      canvas.style.transform = 'scale(' + s + ')';
+      box.style.height = (477 * s) + 'px';
+    }
+    fit();
+    if ('ResizeObserver' in window) new ResizeObserver(fit).observe(box);
+    else window.addEventListener('resize', fit);
+  })();
 </script>
 </body>
 </html>
